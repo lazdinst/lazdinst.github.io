@@ -10,10 +10,8 @@ import GlobalStyle from "./theme/shared/global";
 const AppWrapper = styled.div`
   display: flex;
   flex-direction: row;
-  height: 100vh;
-  width: 100vw;
-  position: fixed;
-  background-color: ${(props) => props.theme.colors.surfaces.background};
+  /* background-color: ${(props) => props.theme.colors.surfaces.background}; */
+  background-color: #000;
   color: ${(props) => props.theme.colors.text.primary};
 `;
 

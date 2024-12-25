@@ -1,5 +1,7 @@
+import World from "./containers/World";
+
 function App() {
-  return <div>T.Nauda Port</div>;
+  return <World />;
 }
 
 export default App;
