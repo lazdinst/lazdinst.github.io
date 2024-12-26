@@ -1,21 +1,23 @@
-import React, { useEffect } from "react";
-import * as THREE from "three";
-import { LightingProps } from "../../definitions";
+import React from "react";
 
-const Lighting: React.FC<LightingProps> = ({ scene }) => {
-  useEffect(() => {
-    const ambientLight = new THREE.AmbientLight(0x404040, 2);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(0, 10, 10);
+const Lighting: React.FC = () => {
+  return (
+    <>
+      {/* Ambient Light */}
+      <ambientLight intensity={0.5} />
 
-    scene.add(ambientLight, directionalLight);
-
-    return () => {
-      scene.remove(ambientLight, directionalLight);
-    };
-  }, [scene]);
-
-  return null;
+      {/* Directional Light */}
+      <directionalLight
+        intensity={1}
+        position={[5, 10, 7.5]}
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-near={0.1}
+        shadow-camera-far={50}
+      />
+    </>
+  );
 };
 
 export default Lighting;

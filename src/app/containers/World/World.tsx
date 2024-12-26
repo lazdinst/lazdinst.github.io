@@ -1,37 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
+import React, { useState } from "react";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 import URDFLoaderComponent from "../URDF";
 import Lighting from "../Lighting";
 import JointControls from "../JointControls";
 import JointAnimator from "../JointAnimator";
 import { URDFJoint } from "../../../definitions";
-import { useSetupScene } from "./hooks";
 
 const World: React.FC = () => {
-  const mountRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene>(new THREE.Scene());
-  const robotGroupRef = useRef(new THREE.Group());
   const [joints, setJoints] = useState<{ [key: string]: URDFJoint }>({});
-  const hasRobotLoaded = useRef(false); // Track if the robot has been loaded
-
-  const setupScene = useSetupScene(mountRef, sceneRef);
-
-  useEffect(() => {
-    console.log("useEffect: World - Start");
-    console.log(robotGroupRef.current);
-    const scene = sceneRef.current;
-    console.log();
-    scene.add(robotGroupRef.current); // Add robot group to the scene
-
-    const cleanup = setupScene();
-    return () => {
-      console.log("useEffect: World - Cleaning up scene...");
-      scene.remove(robotGroupRef.current); // Remove robot group
-      robotGroupRef.current.clear(); // Clear objects from robot group
-      cleanup();
-      hasRobotLoaded.current = false; // Reset robot loaded state
-    };
-  }, []); // Ensure no dependencies cause re-runs
 
   const updateJoint = (name: string, value: number) => {
     const joint = joints[name];
@@ -41,17 +18,22 @@ const World: React.FC = () => {
   };
 
   return (
-    <div
-      ref={mountRef}
-      style={{ width: "100%", height: "100vh", position: "relative" }}
-    >
-      <URDFLoaderComponent
-        scene={sceneRef.current}
-        robotGroup={robotGroupRef.current}
-        setJoints={setJoints}
-      />
-      <Lighting scene={sceneRef.current} />
-      <JointAnimator joints={joints} />
+    <div style={{ width: "100%", height: "100vh", position: "relative" }}>
+      <Canvas camera={{ position: [0, 2, 5], fov: 75 }}>
+        {/* Lighting */}
+        <Lighting />
+
+        {/* URDF Loader */}
+        <URDFLoaderComponent setJoints={setJoints} />
+
+        {/* Controls */}
+        <OrbitControls enableDamping={false} />
+
+        {/* Animations */}
+        {/* <JointAnimator joints={joints} /> */}
+      </Canvas>
+
+      {/* Joint Controls */}
       <JointControls joints={joints} updateJoint={updateJoint} />
     </div>
   );

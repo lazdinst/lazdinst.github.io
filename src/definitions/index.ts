@@ -1,7 +1,5 @@
 import * as THREE from "three";
 export interface URDFLoaderComponentProps {
-  scene: THREE.Scene;
-  robotGroup: THREE.Group; // New robot group reference
   setJoints: (joints: { [key: string]: URDFJoint }) => void;
 }
 
