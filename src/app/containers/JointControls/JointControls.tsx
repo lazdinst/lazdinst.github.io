@@ -1,10 +1,5 @@
 import React from "react";
-import { URDFJoint } from "../../definitions";
-
-interface JointControlsProps {
-  joints: { [key: string]: URDFJoint };
-  updateJoint: (name: string, value: number) => void;
-}
+import { JointControlsProps } from "../../definitions";
 
 const JointControls: React.FC<JointControlsProps> = ({
   joints,

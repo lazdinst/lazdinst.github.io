@@ -1,9 +1,5 @@
 import React, { useEffect } from "react";
-import { URDFJoint } from "../../definitions";
-
-interface JointAnimatorProps {
-  joints: { [key: string]: URDFJoint };
-}
+import { JointAnimatorProps } from "../../../definitions";
 
 const JointAnimator: React.FC<JointAnimatorProps> = ({ joints }) => {
   useEffect(() => {

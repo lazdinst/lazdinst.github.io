@@ -1,9 +1,6 @@
 import React, { useEffect } from "react";
 import * as THREE from "three";
-
-interface LightingProps {
-  scene: THREE.Scene;
-}
+import { LightingProps } from "../../definitions";
 
 const Lighting: React.FC<LightingProps> = ({ scene }) => {
   useEffect(() => {

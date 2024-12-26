@@ -9,13 +9,13 @@ import { ThemeProvider } from "./styled";
 import "./styled/index.css";
 
 createRoot(document.getElementById("root")!).render(
-  // <StrictMode>
-  <BrowserRouter>
-    <Provider store={store}>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
-    </Provider>
-  </BrowserRouter>
-  // </StrictMode>
+  <StrictMode>
+    <BrowserRouter>
+      <Provider store={store}>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </Provider>
+    </BrowserRouter>
+  </StrictMode>
 );
