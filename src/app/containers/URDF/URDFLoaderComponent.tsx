@@ -7,7 +7,7 @@ import {
   URDFJoint,
 } from "../../../definitions";
 
-const urdfPath = "/fanuc_crx10ia_support/urdf/crx10ial.urdf";
+const urdfPath = import.meta.env.VITE_URDF_PATH;
 
 const URDFLoaderComponent: React.FC<URDFLoaderComponentProps> = ({
   setJoints,
