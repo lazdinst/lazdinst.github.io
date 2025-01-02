@@ -6,8 +6,9 @@ import {
   URDFRobot,
   URDFJoint,
 } from "../../../definitions";
+import { getURDFPath } from "../../../utils";
 
-const urdfPath = import.meta.env.VITE_URDF_PATH;
+const urdfPath = getURDFPath();
 
 const URDFLoaderComponent: React.FC<URDFLoaderComponentProps> = ({
   setJoints,
