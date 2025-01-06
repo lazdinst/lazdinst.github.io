@@ -5,7 +5,13 @@ import URDFLoaderComponent from "../URDF";
 import Lighting from "../Lighting";
 import JointControls from "../JointControls";
 import JointAnimator from "../JointAnimator";
+import LogCameraPosition from "../LogCameraPositions";
+import Axis from "../Axis";
+
 import { URDFJoint } from "../../../definitions";
+
+const ANIMATE = false;
+const LOG_CAMERA_POSITION = false;
 
 const World: React.FC = () => {
   const [joints, setJoints] = useState<{ [key: string]: URDFJoint }>({});
@@ -19,21 +25,14 @@ const World: React.FC = () => {
 
   return (
     <div style={{ width: "100%", height: "100vh", position: "relative" }}>
-      <Canvas camera={{ position: [0, 2, 5], fov: 75 }}>
-        {/* Lighting */}
+      <Canvas camera={{ position: [3, 0, 3], up: [0, 0, 1], fov: 75 }}>
         <Lighting />
-
-        {/* URDF Loader */}
+        <Axis />
         <URDFLoaderComponent setJoints={setJoints} />
-
-        {/* Controls */}
         <OrbitControls enableDamping={false} />
-
-        {/* Animations */}
-        {/* <JointAnimator joints={joints} /> */}
+        {LOG_CAMERA_POSITION && <LogCameraPosition />}
+        {ANIMATE && <JointAnimator joints={joints} />}
       </Canvas>
-
-      {/* Joint Controls */}
       <JointControls joints={joints} updateJoint={updateJoint} />
     </div>
   );
