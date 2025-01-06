@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
@@ -11,7 +11,7 @@ const OFFSET = 0.1;
 const AxesHelper: React.FC<AxesHelperProps> = ({ size = 2 }) => {
   const { scene } = useThree();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const axesHelper = new THREE.AxesHelper(size);
     scene.add(axesHelper);
 
