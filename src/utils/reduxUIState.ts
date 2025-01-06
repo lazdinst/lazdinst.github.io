@@ -14,7 +14,6 @@ export function loadPlannerState() {
 export function loadUIState() {
   try {
     const serializedState = localStorage.getItem("ui");
-    console.log("serializedState", serializedState);
     if (serializedState === null) {
       return undefined;
     }
