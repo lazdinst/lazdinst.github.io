@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const SideBarContainer = styled.div`
   width: 300px;
   height: 100%;
-  background-color: blue;
+  background-color: ${({ theme }) => theme.colors.surfaces.sidebar};
   color: white;
   padding: 1rem;
   display: flex;
@@ -13,6 +13,6 @@ export const SideBarContainer = styled.div`
 
 export const Title = styled.h2`
   margin: 0 0 1rem;
-  font-size: 1.5rem;
+  font-size: 1rem;
   text-align: center;
 `;
