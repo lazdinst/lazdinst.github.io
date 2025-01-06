@@ -5,6 +5,7 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
     font-family: 'Arial', sans-serif;
     cursor: default;
+    background-color: rgb(15 23 42 / var(--tw-bg-opacity, 1));
   }
   html {
     font-family: 'Montserrat', sans-serif;

@@ -1,5 +1,4 @@
-// client/src/styled/theme/dark/darkColors.ts
-import { Colors } from "../types/colors"; // Import the Colors interface
+import { Colors } from "../types/colors";
 import { sharedColors } from "../shared/colors";
 
 const neutrals = {
@@ -17,6 +16,20 @@ const neutrals = {
   950: "#000000", // Black
 };
 
+export const slate = {
+  50: "#f8fafc",
+  100: "#f1f5f9",
+  200: "#e2e8f0",
+  300: "#cbd5e1",
+  400: "#94a3b8",
+  500: "#64748b",
+  600: "#475569",
+  700: "#334155",
+  800: "#1e293b",
+  900: "#0f172a",
+  950: "#020617",
+};
+
 // Define the dark color theme
 const darkColors: Colors = {
   // Theme-Specific Neutrals
@@ -32,15 +45,15 @@ const darkColors: Colors = {
 
   // Surfaces
   surfaces: {
-    background: neutrals[950], // General background
-    panel: neutrals[900], // Panel background
-    card: neutrals[800], // Card background
-    header: neutrals[800], // Header background
-    footer: neutrals[800], // Footer background
-    modal: neutrals[900], // Modal background
+    background: slate[950], // General background
+    panel: slate[900], // Panel background
+    card: slate[800], // Card background
+    header: slate[800], // Header background
+    footer: slate[800], // Footer background
+    modal: slate[900], // Modal background
     overlay: "rgba(0, 0, 0, 0.5)", // Overlay for modals/dialogs
-    toolbar: neutrals[900], // Toolbar background
-    sidebar: neutrals[800], // Sidebar background
+    toolbar: slate[900], // Toolbar background
+    sidebar: slate[800], // Sidebar background
   },
 
   // Text Colors
@@ -55,7 +68,7 @@ const darkColors: Colors = {
   },
 
   // Borders
-  border: neutrals[900], // General border color
+  border: slate[900], // General border color
 };
 
 export default darkColors;
