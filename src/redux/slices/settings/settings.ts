@@ -1,9 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { SettingsState } from "./types";
+import { SettingsState } from "./settings.types";
 
 const initialState: SettingsState = {
   cacheUIState: true,
   messages: [],
+  gridEnabled: false,
+  worldAxis: true,
+  jointAnimationEnabled: true,
 };
 
 const settings = createSlice({
@@ -16,9 +19,24 @@ const settings = createSlice({
     clearUICache: () => {
       localStorage.removeItem("ui");
     },
+    toggleWorldGrid: (state) => {
+      state.gridEnabled = !state.gridEnabled;
+    },
+    toggleWorldAxis: (state) => {
+      state.worldAxis = !state.worldAxis;
+    },
+    toggleJointAnimation: (state) => {
+      state.jointAnimationEnabled = !state.jointAnimationEnabled;
+    },
   },
 });
 
-export const { toggleCacheUIState, clearUICache } = settings.actions;
+export const {
+  toggleCacheUIState,
+  clearUICache,
+  toggleWorldGrid,
+  toggleWorldAxis,
+  toggleJointAnimation,
+} = settings.actions;
 
 export default settings.reducer;
