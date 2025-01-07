@@ -1,20 +1,25 @@
 import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
 import URDFLoader from "urdf-loader";
-import {
-  URDFLoaderComponentProps,
-  URDFRobot,
-  URDFJoint,
-} from "../../../definitions";
+import { URDFRobot, URDFJoint } from "../../../definitions";
 import { getURDFPath } from "../../../utils";
+import { useJoints } from "../../context";
+
+// TODO: There is an issue when saving this file.
+// It causes a re-render which clears the scene which removes the elements from the scene.
+// It may be because the lighting is being removed from the scene but the robot is still there.
+// Ok so i did figure it out, react lifecycle and the threejs scene get out of sync because of the re-renders
+// to solve this we need to migrate the react compoents to hooks that manage the scene.
+// OK that didnt really work, because now i have an issue that the axes text is a react component.
+
+// import { useLighting } from "./hooks";
 
 const urdfPath = getURDFPath();
 
-const URDFLoaderComponent: React.FC<URDFLoaderComponentProps> = ({
-  setJoints,
-}) => {
+const URDFLoaderComponent: React.FC = () => {
+  const { updateJoints } = useJoints();
   const { scene } = useThree();
-
+  // useLighting(); - Debug lighting
   useEffect(() => {
     const loader = new URDFLoader();
     loader.load(
@@ -24,14 +29,13 @@ const URDFLoaderComponent: React.FC<URDFLoaderComponentProps> = ({
 
         // Add robot to scene
         scene.add(robot);
-
         // Extract joints
         const joints: { [key: string]: URDFJoint } = {};
         Object.entries(robot.joints).forEach(([name, joint]) => {
           joints[name] = joint;
         });
 
-        setJoints(joints);
+        updateJoints(joints);
       },
       undefined,
       (error) => {
@@ -43,7 +47,7 @@ const URDFLoaderComponent: React.FC<URDFLoaderComponentProps> = ({
       // Remove robot on cleanup
       scene.clear();
     };
-  }, [scene, setJoints]);
+  }, [scene, updateJoints]);
 
   return null;
 };

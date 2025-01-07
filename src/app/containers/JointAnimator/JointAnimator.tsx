@@ -1,7 +1,9 @@
 import React, { useEffect } from "react";
-import { JointAnimatorProps } from "../../../definitions";
+import { useJoints } from "../../context";
 
-const JointAnimator: React.FC<JointAnimatorProps> = ({ joints }) => {
+const JointAnimator: React.FC = () => {
+  const { joints } = useJoints();
+
   useEffect(() => {
     const animate = () => {
       requestAnimationFrame(animate);

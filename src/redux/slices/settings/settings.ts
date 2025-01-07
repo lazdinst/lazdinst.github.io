@@ -4,7 +4,7 @@ import { SettingsState } from "./settings.types";
 const initialState: SettingsState = {
   cacheUIState: true,
   messages: [],
-  gridEnabled: false,
+  gridEnabled: true,
   worldAxis: true,
   jointAnimationEnabled: true,
 };

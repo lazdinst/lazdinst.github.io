@@ -7,8 +7,8 @@ export interface JointState {
 
 export interface JointContextProps {
   joints: { [key: string]: URDFJoint };
-  setJoints: (newJoints: { [key: string]: URDFJoint }) => void;
   updateJoint: (name: string, value: number) => void;
+  updateJoints: (joints: { [key: string]: URDFJoint }) => void;
 }
 
 export interface JointProviderProps {

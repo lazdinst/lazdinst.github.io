@@ -1,10 +1,8 @@
 import React from "react";
-import { JointControlsProps } from "../../definitions";
+import { useJoints } from "../../context";
 
-const JointControls: React.FC<JointControlsProps> = ({
-  joints,
-  updateJoint,
-}) => {
+const JointControls: React.FC = () => {
+  const { joints, updateJoint } = useJoints();
   return (
     <div
       style={{
