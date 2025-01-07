@@ -1,6 +1,6 @@
 import React from "react";
 import { AppProvidersProps, ProviderComponent } from "./providers.types";
-import { JointProvider } from "../context/joints/JointProvider";
+import { JointProvider } from "../context/joints";
 
 const providers: ProviderComponent[] = [JointProvider];
 

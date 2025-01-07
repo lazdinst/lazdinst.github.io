@@ -3,7 +3,7 @@ import { URDFJoint } from "../../../definitions";
 import { JointProviderProps } from "./joints.types";
 import JointContext from "./JointContext";
 
-export const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
+const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
   const [joints, setJointsState] = useState<{ [key: string]: URDFJoint }>({});
 
   const setJoints = (newJoints: { [key: string]: URDFJoint }) => {
@@ -23,3 +23,5 @@ export const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
     </JointContext.Provider>
   );
 };
+
+export default JointProvider;
