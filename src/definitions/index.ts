@@ -1,12 +1,16 @@
 import * as THREE from "three";
+
+// DEPRECATED - UPDATEJOINTS comes from context now
 export interface URDFLoaderComponentProps {
   setJoints: (joints: { [key: string]: URDFJoint }) => void;
 }
 
+// DEPRECATED JOINT ANIMATOR PROPS - JOINTS FROM CONTEXT
 export interface JointAnimatorProps {
   joints: { [key: string]: URDFJoint };
 }
 
+// DEPERECATED JOINT CONTROL PROPS - comes from useJoints context
 export interface JointControlsProps {
   joints: { [key: string]: URDFJoint };
   updateJoint: (name: string, value: number) => void;
