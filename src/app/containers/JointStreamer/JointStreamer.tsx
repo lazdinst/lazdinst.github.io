@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useJoints } from "../../context";
 import {
   Container,
-  Title,
   ToggleButton,
   JointList,
   JointItem,
@@ -23,12 +22,14 @@ const JointStreamer: React.FC = () => {
     if (value === undefined || isNaN(value)) {
       return "—";
     }
-    return isDegrees ? ((value * 180) / Math.PI).toFixed(2) : value.toFixed(2);
+    if (isDegrees) {
+      return `${((value * 180) / Math.PI).toFixed(2)}°`;
+    }
+    return value.toFixed(2);
   };
 
   return (
     <Container>
-      <Title>Joint Values</Title>
       <ToggleButton onClick={toggleUnit}>
         Display in {isDegrees ? "Radians" : "Degrees"}
       </ToggleButton>

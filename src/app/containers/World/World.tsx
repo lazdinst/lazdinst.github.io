@@ -7,6 +7,7 @@ import JointAnimator from "../JointAnimator";
 import LogCameraPosition from "../LogCameraPositions";
 import SceneEnvironment from "../SceneEnvironment";
 import DebugHelpers from "../DebugHelper";
+import JointStreamer from "../JointStreamer";
 
 const LOG_CAMERA_POSITION = false;
 const DEBUG_HELPER = false;
@@ -22,6 +23,7 @@ const World: React.FC = () => {
         {LOG_CAMERA_POSITION && <LogCameraPosition />}
         <JointAnimator />
       </Canvas>
+      <JointStreamer />
     </WorldContainer>
   );
 };
