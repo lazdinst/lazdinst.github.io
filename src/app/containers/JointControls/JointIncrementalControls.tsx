@@ -1,4 +1,6 @@
 import React from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux";
 import { useJoints } from "../../context";
 import { Button } from "./JointControls.style";
 import {
@@ -15,6 +17,9 @@ const JointIncrementalControls: React.FC<JointIncrementalControlsProps> = ({
   jointName,
   value,
 }) => {
+  const { jointAnimationEnabled } = useSelector(
+    (state: RootState) => state.settings
+  );
   const { updateJoint } = useJoints();
 
   const incrementValue = () => {
@@ -33,8 +38,12 @@ const JointIncrementalControls: React.FC<JointIncrementalControlsProps> = ({
 
   return (
     <>
-      <Button onClick={incrementValue}>+</Button>
-      <Button onClick={decrementValue}>-</Button>
+      <Button onClick={incrementValue} disabled={jointAnimationEnabled}>
+        +
+      </Button>
+      <Button onClick={decrementValue} disabled={jointAnimationEnabled}>
+        -
+      </Button>
     </>
   );
 };
