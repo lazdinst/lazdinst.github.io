@@ -9,6 +9,7 @@ export interface JointContextProps {
   joints: { [key: string]: URDFJoint };
   updateJoint: (name: string, value: number) => void;
   updateJoints: (joints: { [key: string]: URDFJoint }) => void;
+  getJointValues: () => { [key: string]: number };
 }
 
 export interface JointProviderProps {

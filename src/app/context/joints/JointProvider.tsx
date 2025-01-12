@@ -23,8 +23,18 @@ const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
     []
   );
 
+  const getJointValues = () => {
+    return Object.keys(joints).reduce((values, name) => {
+      const joint = joints[name];
+      values[name] = joint.angle;
+      return values;
+    }, {} as { [key: string]: number });
+  };
+
   return (
-    <JointContext.Provider value={{ joints, updateJoint, updateJoints }}>
+    <JointContext.Provider
+      value={{ joints, updateJoint, updateJoints, getJointValues }}
+    >
       {children}
     </JointContext.Provider>
   );
