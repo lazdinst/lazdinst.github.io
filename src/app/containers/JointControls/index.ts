@@ -1,1 +1,1 @@
-export { default } from "./JointControls";
+export { default as JointControls } from "./JointControls";
