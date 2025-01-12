@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { useJoints } from "../../context";
 import { RootState, useAppDispatch } from "../../../redux/store";
 import { toggleJointAnimation } from "../../../redux/slices/settings";
-import JointStreamer from "../JointStreamer";
 import {
   Container,
   SectionTitle,
@@ -28,7 +27,6 @@ const JointControls: React.FC = () => {
 
   return (
     <Container>
-      <SectionTitle>Animation</SectionTitle>
       <CheckboxLabel>
         <input
           type="checkbox"
@@ -37,7 +35,6 @@ const JointControls: React.FC = () => {
         />
         Enable joint animation
       </CheckboxLabel>
-      <JointStreamer />
       <SectionTitle>Joint Controls</SectionTitle>
       {Object.keys(joints)
         .filter((jointName) => ALLOWED_JOINTS[jointName])

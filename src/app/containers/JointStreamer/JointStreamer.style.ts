@@ -1,14 +1,23 @@
 import styled from "styled-components";
-// Styled Components
+
 export const Container = styled.div`
-  padding: 1rem;
+  position: absolute;
+  bottom: 16px;
+  display: flex;
+  width: fit-content;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
 `;
 
+// DEPRECATED
 export const Title = styled.h2`
   margin-bottom: 1rem;
 `;
 
 export const ToggleButton = styled.button`
+  width: auto;
+  height: fit-content;
   padding: 0.5rem 1rem;
   background-color: #007bff;
   color: white;
@@ -22,11 +31,11 @@ export const ToggleButton = styled.button`
 `;
 
 export const JointList = styled.div`
-  margin-top: 1rem;
+  display: flex;
 `;
 
 export const JointItem = styled.div`
-  margin-bottom: 1rem;
+  margin-right: 1rem;
 `;
 
 export const Label = styled.label`
@@ -36,8 +45,9 @@ export const Label = styled.label`
 `;
 
 export const ReadOnlyInput = styled.input`
-  width: 100%;
-  padding: 0.5rem;
+  padding: 0.1rem;
+  width: auto;
+  max-width: 42px;
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #f9f9f9;
