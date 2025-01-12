@@ -1,21 +1,33 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import { useJoints } from "../../context";
+import { RootState, useAppDispatch } from "../../../redux/store";
+import { toggleJointAnimation } from "../../../redux/slices/settings";
+import JointStreamer from "../JointStreamer";
 
 const JointControls: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { jointAnimationEnabled } = useSelector(
+    (state: RootState) => state.settings
+  );
   const { joints, updateJoint } = useJoints();
+
+  const handleToggleJointAnimation = () => {
+    dispatch(toggleJointAnimation());
+  };
+  console.log(jointAnimationEnabled);
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: 0,
-        right: 0,
-        width: "300px",
-        padding: "10px",
-        borderRadius: "8px",
-        overflowY: "auto",
-        maxHeight: "100vh",
-      }}
-    >
+    <>
+      <h3>Animation</h3>
+      <label>
+        <input
+          type="checkbox"
+          checked={jointAnimationEnabled}
+          onChange={() => handleToggleJointAnimation()}
+        />
+        Enable joint animation
+      </label>
+      <JointStreamer />
       <h3>Joint Controls</h3>
       {Object.keys(joints).map((jointName) => (
         <div key={jointName} style={{ marginBottom: "10px" }}>
@@ -33,7 +45,7 @@ const JointControls: React.FC = () => {
           />
         </div>
       ))}
-    </div>
+    </>
   );
 };
 

@@ -24,6 +24,7 @@ export interface URDFJoint extends THREE.Object3D {
   isURDFJoint: boolean;
   name: string;
   setJointValue: (value: number) => void;
+  angle: number;
 }
 
 export interface URDFLink extends THREE.Object3D {
