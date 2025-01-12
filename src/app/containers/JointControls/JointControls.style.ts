@@ -10,3 +10,56 @@ export const JointControlsContainer = styled.div`
   overflow-y: auto;
   max-height: 100vh;
 `;
+
+export const Container = styled.div`
+  padding: 1rem;
+`;
+
+export const SectionTitle = styled.h3`
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+`;
+
+export const Label = styled.label`
+  display: block;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 0.5rem;
+`;
+
+export const SliderContainer = styled.div`
+  margin-bottom: 10px;
+`;
+
+export const Slider = styled.input`
+  width: 80%;
+  margin-right: 10px;
+`;
+
+export const Button = styled.button`
+  padding: 0.2rem 0.5rem;
+  font-size: 1rem;
+  margin-left: 5px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+`;
+
+export const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+`;
