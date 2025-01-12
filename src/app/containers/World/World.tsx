@@ -16,7 +16,7 @@ const DEBUG_HELPER = false;
 const World: React.FC = () => {
   return (
     <WorldContainer>
-      <Canvas camera={{ position: [3, 0, 3], up: [0, 0, 1], fov: 75 }}>
+      <Canvas camera={{ position: [1.5, 1.5, 1.5], up: [0, 0, 1], fov: 75 }}>
         {DEBUG_HELPER && <DebugHelpers />}
         <SceneEnvironment />
         <URDFLoaderComponent />
