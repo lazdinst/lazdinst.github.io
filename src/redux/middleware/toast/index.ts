@@ -1,33 +1,25 @@
 import { Middleware } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 
+const NO_OP = false;
 export interface CustomAction {
   type: string;
   error?: {
     message?: string;
   };
-  payload: string;
+  payload?: string;
 }
 
-// TODO: This could be made so its modular and has unique conditions for each toast
 export const toastMiddleware: Middleware =
   (store) => (next) => (action: unknown) => {
     const typedAction = action as CustomAction;
-
-    const serverConnected = store.getState().server.connected;
-
-    if (serverConnected) {
-      if (
-        typedAction.type?.endsWith("/rejected") &&
-        typedAction.error?.message
-      ) {
-        const errorMessage = typedAction?.payload;
-        toast.error(
-          errorMessage || "An error occurred; No error message provided."
-        );
-      }
+    if (NO_OP) {
+      const state = store.getState();
+      console.log("Current State: ", state);
+      toast(`Action Type: ${typedAction.type}`, {
+        type: "info",
+      });
     }
-
     return next(action);
   };
 
