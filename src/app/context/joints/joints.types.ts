@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { URDFJoint } from "../../../definitions";
+import { URDFJoint } from "urdf-loader";
 
 export interface JointState {
   joints: { [key: string]: URDFJoint };

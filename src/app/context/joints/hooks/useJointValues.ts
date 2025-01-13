@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { URDFJoint } from "../../../../definitions";
+// import { URDFJoint } from "../../../../definitions";
+import { URDFJoint } from "urdf-loader";
 import { JOINT_STREAM_INTERVAL } from "../../../../constants";
 import { JointValuesType } from "../joints.types";
 
@@ -10,7 +11,7 @@ export const useJointValues = (joints: { [key: string]: URDFJoint }) => {
     const interval = setInterval(() => {
       const values = Object.keys(joints).reduce((acc, name) => {
         const joint = joints[name];
-        acc[name] = joint.angle;
+        acc[name] = Number(joint.angle);
         return acc;
       }, {} as JointValuesType);
 
