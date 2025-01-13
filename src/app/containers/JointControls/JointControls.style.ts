@@ -12,24 +12,32 @@ export const JointControlsContainer = styled.div`
 `;
 
 export const Container = styled.div`
-  padding: 1rem;
+  padding: 0.25rem;
 `;
 
-export const SectionTitle = styled.h3`
+export const SectionTitle = styled.p`
+  font-size: 1rem;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: ${(props) => props.theme.colors.text};
 `;
 
 export const Label = styled.label`
   display: block;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: ${(props) => props.theme.colors.text};
+  margin-right: 0.25rem;
 `;
 
 export const SliderContainer = styled.div`
   margin-bottom: 10px;
+`;
+
+export const JointSettingContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
 `;
 
 export const Slider = styled.input`
