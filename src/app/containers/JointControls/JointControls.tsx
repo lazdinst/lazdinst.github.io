@@ -1,55 +1,42 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import { useJoints } from "../../context";
-import { RootState, useAppDispatch } from "../../../redux/store";
-import { toggleJointAnimation } from "../../../redux/slices/settings";
 import {
   Container,
   SectionTitle,
-  CheckboxLabel,
-  SliderContainer,
+  JointSettingContainer,
+  Label,
 } from "./JointControls.style";
 
-import { ALLOWED_JOINTS } from "../../../constants";
+import { ALLOWED_JOINTS, JOINT_NAME_MAP } from "../../../constants";
 import JointIncrementalControls from "./JointIncrementalControls";
-import JointSliderControls from "./JointSliderControls";
+import JointSlider from "./JointSlider";
+import JointAnimationToggle from "../JointAnimationToggle";
 
 const JointControls: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { jointAnimationEnabled } = useSelector(
-    (state: RootState) => state.settings
-  );
   const { joints, jointValues } = useJoints();
-
-  const handleToggleJointAnimation = () => {
-    dispatch(toggleJointAnimation());
-  };
 
   return (
     <Container>
-      <CheckboxLabel>
-        <input
-          type="checkbox"
-          checked={jointAnimationEnabled}
-          onChange={handleToggleJointAnimation}
-        />
-        Enable joint animation
-      </CheckboxLabel>
+      <JointAnimationToggle />
       <SectionTitle>Joint Controls</SectionTitle>
       {Object.keys(joints)
         .filter((jointName) => ALLOWED_JOINTS[jointName])
         .map((jointName) => {
           return (
-            <SliderContainer key={jointName}>
-              <JointSliderControls
-                jointName={jointName}
-                value={jointValues[jointName]}
-              />
+            <JointSettingContainer key={jointName}>
+              {/* Joint Name as a shorthand */}
+              <Label>{JOINT_NAME_MAP[jointName]}:</Label>
+              {/* Joint Value in a numeric input with increment and decrement controls */}
               <JointIncrementalControls
                 jointName={jointName}
                 value={jointValues[jointName]}
               />
-            </SliderContainer>
+              {/* Joint Slider  */}
+              <JointSlider
+                jointName={jointName}
+                value={jointValues[jointName]}
+              />
+            </JointSettingContainer>
           );
         })}
     </Container>
