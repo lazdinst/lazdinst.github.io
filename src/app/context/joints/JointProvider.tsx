@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { URDFJoint } from "../../../definitions";
+import { URDFJoint } from "urdf-loader";
 import { JointProviderProps, JointValuesType } from "./joints.types";
 import JointContext from "./JointContext";
 import { useJointValues } from "./hooks";
@@ -27,7 +27,7 @@ const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
   const getJointValues = () => {
     return Object.keys(joints).reduce((values, name) => {
       const joint = joints[name];
-      values[name] = joint.angle;
+      values[name] = Number(joint.angle);
       return values;
     }, {} as JointValuesType);
   };

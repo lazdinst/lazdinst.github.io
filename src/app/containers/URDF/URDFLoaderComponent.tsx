@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
-import URDFLoader from "urdf-loader";
-import { URDFRobot, URDFJoint } from "../../../definitions";
+import URDFLoader, { URDFJoint } from "urdf-loader";
+import { URDFRobot } from "../../../definitions";
 import { getURDFPath } from "../../../utils";
 import { useJoints } from "../../context";
 
