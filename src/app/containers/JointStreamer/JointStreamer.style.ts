@@ -8,17 +8,15 @@ export const Container = styled.div`
   left: 0;
   right: 0;
   margin: 0 auto;
-`;
-
-// DEPRECATED
-export const Title = styled.h2`
-  margin-bottom: 1rem;
+  background-color: ${({ theme }) => theme.colors.surfaces.card};
+  padding: 0.25rem;
+  border-radius: 4px;
 `;
 
 export const ToggleButton = styled.button`
-  width: auto;
+  width: 32px;
   height: fit-content;
-  padding: 0.5rem 1rem;
+  padding: 0.25rem 0.5rem;
   background-color: #007bff;
   color: white;
   border: none;
@@ -35,20 +33,25 @@ export const JointList = styled.div`
 `;
 
 export const JointItem = styled.div`
-  margin-right: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 0.5rem;
 `;
 
 export const Label = styled.label`
   display: block;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-right: 0.25rem;
+  font-size: 0.875rem;
 `;
 
 export const ReadOnlyInput = styled.input`
   padding: 0.1rem;
   width: auto;
   max-width: 42px;
-  border: 1px solid #ddd;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  text-align: right;
   border-radius: 4px;
-  background-color: #f9f9f9;
+  color: ${({ theme }) => theme.colors.text.primary};
+  background-color: ${({ theme }) => theme.colors.surfaces.card};
 `;
