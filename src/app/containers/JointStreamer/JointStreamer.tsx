@@ -30,9 +30,7 @@ const JointStreamer: React.FC = () => {
 
   return (
     <Container>
-      <ToggleButton onClick={toggleUnit}>
-        Display in {isDegrees ? "Radians" : "Degrees"}
-      </ToggleButton>
+      <ToggleButton onClick={toggleUnit}>{isDegrees ? "○" : "π"}</ToggleButton>
       <JointList>
         {Object.entries(jointValues)
           .filter(([jointName]) => ALLOWED_JOINTS[jointName])
