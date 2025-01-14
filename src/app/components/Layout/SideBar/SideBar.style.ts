@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const SideBarContainer = styled.div`
-  width: 300px;
+  min-width: 300px;
   height: 100%;
   background-color: ${({ theme }) => theme.colors.surfaces.sidebar};
   color: white;
