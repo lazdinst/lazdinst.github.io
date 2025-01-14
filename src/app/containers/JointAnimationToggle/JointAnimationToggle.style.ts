@@ -44,3 +44,18 @@ export const ToggleSlider = styled.span`
     transition: transform 0.3s ease;
   }
 `;
+
+export const Dropdown = styled.select`
+  margin-left: 8px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+`;
+
+export const DropdownLabel = styled.label`
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #333;
+`;

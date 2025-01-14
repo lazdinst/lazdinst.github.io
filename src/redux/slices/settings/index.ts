@@ -5,4 +5,5 @@ export {
   toggleWorldGrid,
   toggleWorldAxis,
   toggleJointAnimation,
+  setJointAnimationType,
 } from "./settings";

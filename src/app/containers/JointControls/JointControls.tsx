@@ -24,14 +24,11 @@ const JointControls: React.FC = () => {
         .map((jointName) => {
           return (
             <JointSettingContainer key={jointName}>
-              {/* Joint Name as a shorthand */}
               <Label>{JOINT_NAME_MAP[jointName]}:</Label>
-              {/* Joint Value in a numeric input with increment and decrement controls */}
               <JointIncrementalControls
                 jointName={jointName}
                 value={jointValues[jointName]}
               />
-              {/* Joint Slider  */}
               <JointSlider
                 jointName={jointName}
                 value={jointValues[jointName]}

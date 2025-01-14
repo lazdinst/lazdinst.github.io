@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { SettingsState } from "./settings.types";
-
 const initialState: SettingsState = {
   cacheUIState: true,
   messages: [],
   gridEnabled: true,
   worldAxis: true,
   jointAnimationEnabled: true,
+  jointAnimationType: "sine",
 };
 
 const settings = createSlice({
@@ -28,6 +28,9 @@ const settings = createSlice({
     toggleJointAnimation: (state) => {
       state.jointAnimationEnabled = !state.jointAnimationEnabled;
     },
+    setJointAnimationType: (state, action) => {
+      state.jointAnimationType = action.payload;
+    },
   },
 });
 
@@ -37,6 +40,7 @@ export const {
   toggleWorldGrid,
   toggleWorldAxis,
   toggleJointAnimation,
+  setJointAnimationType,
 } = settings.actions;
 
 export default settings.reducer;
