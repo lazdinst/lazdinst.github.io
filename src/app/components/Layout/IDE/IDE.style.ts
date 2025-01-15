@@ -1,4 +1,15 @@
 import styled from "styled-components";
+interface Draggable {
+  $isDragging: boolean;
+}
+
+interface HorizontalDraggable extends Draggable {
+  width: number;
+}
+
+interface VerticalDraggable extends Draggable {
+  height: number;
+}
 
 // Wrapper for the entire layout
 export const Wrapper = styled.div`
@@ -31,51 +42,13 @@ export const RobotArea = styled.div<{ width: number; height: number }>`
   min-width: 0;
 `;
 
-// File Tree section
-export const DraggableSidebar = styled.div<{
-  isDragging: boolean;
-  width: number;
-}>`
+export const DraggableSidebar = styled.div<HorizontalDraggable>`
   width: ${({ width }) => width || 300}px;
-  transition: filter 0.2s ease-out, background-color 0.2s ease-out;
-  font-size: 16px;
-  opacity: ${({ isDragging }) => (isDragging ? "0.7" : "1")};
   flex-shrink: 0;
-  display: grid;
-  place-items: center;
-`;
-
-// Plugin area
-export const PluginArea = styled.div<{ isDragging: boolean; width: number }>`
-  width: ${({ width }) => width || 250}px;
   transition: filter 0.2s ease-out, background-color 0.2s ease-out;
-  font-size: 16px;
-  opacity: ${({ isDragging }) => (isDragging ? "0.7" : "1")};
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
 `;
 
-// Splitter wrapper for the draggable bars
-export const SplitterWrapper = styled.div<{ isDragging: boolean }>`
-  display: flex;
-  position: relative;
-  cursor: ${({ isDragging }) => (isDragging ? "grabbing" : "grab")};
-`;
-
-// Terminal area
-export const Terminal = styled.div<{ isDragging: boolean; height: number }>`
+export const Terminal = styled.div<VerticalDraggable>`
   height: ${({ height }) => height || 150}px;
-  background-color: #1e293b; // bg-darker
-  transition: height 0.2s;
-  opacity: ${({ isDragging }) => (isDragging ? "0.7" : "1")};
-  display: grid;
-  place-items: center;
   transition: filter 0.2s ease-out, background-color 0.2s ease-out;
-  font-size: 16px;
-
-  &.dragging {
-    filter: blur(5px);
-    background-color: #555555;
-  }
 `;
