@@ -1,5 +1,4 @@
 import React from "react";
-import { WorldContainer } from "./World.style";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import URDFLoaderComponent from "../URDF";
@@ -14,7 +13,7 @@ const DEBUG_HELPER = false;
 
 const World: React.FC = () => {
   return (
-    <WorldContainer>
+    <>
       <Canvas camera={{ position: [1.5, 1.5, 1.5], up: [0, 0, 1], fov: 75 }}>
         {DEBUG_HELPER && <DebugHelpers />}
         <SceneEnvironment />
@@ -24,7 +23,7 @@ const World: React.FC = () => {
         <JointAnimator />
       </Canvas>
       <JointStreamer />
-    </WorldContainer>
+    </>
   );
 };
 
