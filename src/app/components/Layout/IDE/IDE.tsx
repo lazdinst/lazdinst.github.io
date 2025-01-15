@@ -6,7 +6,6 @@ import {
   DraggableSidebar,
   RobotArea,
   EditorArea,
-  PluginArea,
   Terminal,
 } from "./IDE.style";
 import { useIdeLayout } from "./hooks";
@@ -39,7 +38,7 @@ const IdeClone: React.FC<IDEProps> = ({
     <Wrapper>
       <MainArea>
         <DraggableSidebar
-          isDragging={isLeftSidebarDragging}
+          $isDragging={isLeftSidebarDragging}
           width={leftSidebarWidth}
         >
           {sidebar}
@@ -59,22 +58,20 @@ const IdeClone: React.FC<IDEProps> = ({
             isDragging={isRightSidebarDragging}
             {...rightSidebarSeparatorProps}
           />
-          <PluginArea
-            isDragging={isRightSidebarDragging}
+          <DraggableSidebar
+            $isDragging={isRightSidebarDragging}
             width={rightSidebarWidth}
           >
             {plugin}
-          </PluginArea>
+          </DraggableSidebar>
         </EditorArea>
       </MainArea>
-
       <Separator
         direction="horizontal"
         isDragging={isTerminalDragging}
         {...terminalSeparatorProps}
       />
-
-      <Terminal isDragging={isTerminalDragging} height={terminalH}>
+      <Terminal $isDragging={isTerminalDragging} height={terminalH}>
         Terminal
       </Terminal>
     </Wrapper>
