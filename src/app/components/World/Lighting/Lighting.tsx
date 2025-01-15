@@ -8,7 +8,7 @@ const Lighting: React.FC = () => {
 
       {/* Directional Light */}
       <directionalLight
-        intensity={1}
+        intensity={0.5}
         position={[5, 10, 7.5]}
         castShadow
         shadow-mapSize-width={1024}

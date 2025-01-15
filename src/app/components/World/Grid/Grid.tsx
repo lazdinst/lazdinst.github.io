@@ -14,7 +14,7 @@ const GridComponent: React.FC<GridProps> = ({
   size,
   plane,
   shift = false,
-  color = "gray",
+  color = "#3e3e3e",
   divisions = 50,
 }) => {
   // Determine plane-specific configurations

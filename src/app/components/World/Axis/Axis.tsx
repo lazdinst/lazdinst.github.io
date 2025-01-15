@@ -4,31 +4,51 @@ import { useThree } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 
 interface AxesHelperProps {
-  size?: number;
+  axisLength?: number;
 }
 const OFFSET = 0.1;
+const TEXT_SIZE = 0.1;
 
-const AxesHelper: React.FC<AxesHelperProps> = ({ size = 2 }) => {
+const AXIS_COLORS = {
+  x: "red",
+  y: "green",
+  z: "blue",
+};
+
+const AxesHelper: React.FC<AxesHelperProps> = ({ axisLength = 2 }) => {
   const { scene } = useThree();
 
   useEffect(() => {
-    const axesHelper = new THREE.AxesHelper(size);
+    const axesHelper = new THREE.AxesHelper(axisLength);
     scene.add(axesHelper);
 
     return () => {
       scene.remove(axesHelper);
     };
-  }, [scene, size]);
+  }, [scene, axisLength]);
 
   return (
     <>
-      <Text position={[size + OFFSET, 0, 0]} fontSize={0.1} color="red">
+      <Text
+        position={[axisLength + OFFSET, 0, 0]}
+        fontSize={TEXT_SIZE}
+        color={AXIS_COLORS.x}
+      >
         X
       </Text>
-      <Text position={[0, size + OFFSET, 0]} fontSize={0.1} color="green">
+      <Text
+        position={[0, axisLength + OFFSET, 0]}
+        fontSize={TEXT_SIZE}
+        color={AXIS_COLORS.y}
+      >
         Y
       </Text>
-      <Text position={[0, 0, size + OFFSET]} fontSize={0.1} color="blue">
+      <Text
+        position={[0, 0, axisLength + OFFSET]}
+        rotation={[Math.PI / 2, Math.PI, Math.PI]}
+        fontSize={TEXT_SIZE}
+        color={AXIS_COLORS.z}
+      >
         Z
       </Text>
     </>
