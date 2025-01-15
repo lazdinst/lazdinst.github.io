@@ -1,5 +1,12 @@
 import styled from "styled-components";
 
+export const Title = styled.h2`
+  font-weight: 1;
+  font-size: 1rem;
+  margin: 0.25rem 0;
+  text-align: left;
+`;
+
 export const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
