@@ -22,14 +22,21 @@ export const EditorArea = styled.div`
   flex-grow: 1;
 `;
 
-export const RobotArea = styled.div`
+export const RobotArea = styled.div<{ width: number; height: number }>`
+  width: ${({ width }) => width || 250}px;
+  height: ${({ height }) => (height ? `${height}px` : "100%")};
   flex-grow: 1;
-  background-color: #1e293b;
+  background-color: #000000;
+  position: relative;
+  min-width: 0;
 `;
 
 // File Tree section
-export const FileTree = styled.div<{ isDragging: boolean; width: number }>`
-  width: ${({ width }) => width || 250}px;
+export const DraggableSidebar = styled.div<{
+  isDragging: boolean;
+  width: number;
+}>`
+  width: ${({ width }) => width || 300}px;
   transition: filter 0.2s ease-out, background-color 0.2s ease-out;
   font-size: 16px;
   opacity: ${({ isDragging }) => (isDragging ? "0.7" : "1")};

@@ -1,15 +1,15 @@
 import React, { ReactNode } from "react";
-import SampleSplitter from "./SampleSplitter";
-import { useResizable } from "react-resizable-layout";
+import Separator from "./Separator";
 import {
   Wrapper,
   MainArea,
-  FileTree,
+  DraggableSidebar,
   RobotArea,
   EditorArea,
   PluginArea,
   Terminal,
 } from "./IDE.style";
+import { useIdeLayout } from "./hooks";
 
 interface IDEProps {
   sidebar: ReactNode;
@@ -23,63 +23,52 @@ const IdeClone: React.FC<IDEProps> = ({
   plugin,
 }): JSX.Element => {
   const {
-    isDragging: isTerminalDragging,
-    position: terminalH,
-    separatorProps: terminalSeparatorProps,
-  } = useResizable({
-    axis: "y",
-    initial: 150,
-    min: 50,
-    reverse: true,
-  });
-
-  const {
-    isDragging: isFileDragging,
-    position: fileW,
-    separatorProps: fileSeparatorProps,
-  } = useResizable({
-    axis: "x",
-    initial: 250,
-    min: 50,
-  });
-
-  const {
-    isDragging: isPluginDragging,
-    position: pluginW,
-    separatorProps: pluginSeparatorProps,
-  } = useResizable({
-    axis: "x",
-    initial: 200,
-    min: 50,
-    reverse: true,
-  });
-
+    leftSidebarWidth,
+    rightSidebarWidth,
+    terminalH,
+    dynamicCanvasWidth,
+    dynamicCanvasHeight,
+    isLeftSidebarDragging,
+    isRightSidebarDragging,
+    isTerminalDragging,
+    leftSidebarSeparatorProps,
+    rightSidebarSeparatorProps,
+    terminalSeparatorProps,
+  } = useIdeLayout();
   return (
     <Wrapper>
       <MainArea>
-        <FileTree isDragging={isFileDragging} width={fileW}>
+        <DraggableSidebar
+          isDragging={isLeftSidebarDragging}
+          width={leftSidebarWidth}
+        >
           {sidebar}
-        </FileTree>
-        <SampleSplitter
+        </DraggableSidebar>
+        <Separator
           direction="vertical"
-          isDragging={isFileDragging}
-          {...fileSeparatorProps}
+          isDragging={isLeftSidebarDragging}
+          {...leftSidebarSeparatorProps}
         />
 
         <EditorArea>
-          <RobotArea>{main}</RobotArea>
-          <SampleSplitter
+          <RobotArea width={dynamicCanvasWidth} height={dynamicCanvasHeight}>
+            {main}
+          </RobotArea>
+          <Separator
             direction="vertical"
-            isDragging={isPluginDragging}
-            {...pluginSeparatorProps}
+            isDragging={isRightSidebarDragging}
+            {...rightSidebarSeparatorProps}
           />
-          <PluginArea isDragging={isPluginDragging} width={pluginW}>
+          <PluginArea
+            isDragging={isRightSidebarDragging}
+            width={rightSidebarWidth}
+          >
             {plugin}
           </PluginArea>
         </EditorArea>
       </MainArea>
 
-      <SampleSplitter
+      <Separator
         direction="horizontal"
         isDragging={isTerminalDragging}
         {...terminalSeparatorProps}
