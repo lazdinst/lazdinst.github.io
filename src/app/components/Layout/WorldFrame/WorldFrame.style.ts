@@ -1,5 +1,6 @@
 import styled from "styled-components";
 
+// Deprecated
 export const WorldFrameContainer = styled.main`
   display: flex;
   flex-direction: column;
