@@ -1,6 +1,6 @@
 import { FC } from "react";
 import World from "./containers/World";
-import { SideBar, WorldFrame } from "./components";
+import { SideBar } from "./components";
 import AppProviders from "./providers";
 import { JointControls } from "./containers";
 import { IDE } from "./components/Layout";
@@ -11,11 +11,8 @@ const IDESideBar = () => (
   </SideBar>
 );
 
-const IDEMain = () => (
-  <WorldFrame>
-    <World />
-  </WorldFrame>
-);
+const IDEMain = () => <World />;
+
 const App: FC = () => {
   return (
     <AppProviders>
@@ -24,12 +21,6 @@ const App: FC = () => {
         main={<IDEMain />}
         plugin={<div>Plugin</div>}
       />
-      {/* <SideBar>
-        <JointControls />
-      </SideBar>
-      <WorldFrame>
-        <World />
-      </WorldFrame> */}
     </AppProviders>
   );
 };
