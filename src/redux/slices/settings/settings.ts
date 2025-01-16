@@ -6,7 +6,7 @@ const initialState: SettingsState = {
   messages: [],
   gridEnabled: true,
   worldAxis: true,
-  jointAnimationEnabled: true,
+  jointAnimationEnabled: false,
 };
 
 const settings = createSlice({
