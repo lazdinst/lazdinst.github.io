@@ -28,6 +28,7 @@
     "react-toastify": "^11.0.2",
     "styled-components": "^6.1.13",
     "three": "^0.171.0",
+    "ts-kinematics": "^0.1.2",
     "urdf-loader": "^0.12.3",
     "uuid": "^11.0.3"
   },

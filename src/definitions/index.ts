@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { URDFJoint as OriginalURDFJoint } from "urdf-loader";
+import { CartesianPositionsType } from "../app/context/cartesian/cartesian.types";
 
 // DEPRECATED - UPDATEJOINTS comes from context now
 export interface URDFLoaderComponentProps {
@@ -42,3 +43,6 @@ export interface URDFVisual extends THREE.Object3D {
   isURDFVisual: boolean;
   geometry?: THREE.BufferGeometry; // Geometry is optional but expected
 }
+
+// Union of all possible formkeys
+export type FormKeys = keyof CartesianPositionsType;
