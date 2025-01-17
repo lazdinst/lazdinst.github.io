@@ -35,6 +35,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
       selectedTheme = darkTheme;
   }
 
+  console.log(darkTheme);
   return (
     <ThemeContext.Provider value={{ theme: selectedTheme }}>
       <StyledThemeProvider theme={selectedTheme}>

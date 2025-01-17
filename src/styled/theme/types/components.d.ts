@@ -40,4 +40,17 @@ export interface Components {
     thumb: string;
     track: string;
   };
+  inputField: {
+    background: string;
+    text: string;
+    border: string;
+    placeholder: string;
+    hover: string;
+    focus: string;
+    disabled: {
+      background: string;
+      text: string;
+      border: string;
+    };
+  };
 }

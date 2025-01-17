@@ -1,5 +1,3 @@
-// client/src/styled/theme/dark/components.ts
-
 import darkColors from "./colors";
 import { DefaultTheme } from "styled-components";
 
@@ -44,6 +42,19 @@ const darkComponentStyles: DefaultTheme["components"] = {
   scrollbar: {
     thumb: darkColors.neutrals[700],
     track: darkColors.neutrals[900],
+  },
+  inputField: {
+    background: darkColors.surfaces.card,
+    text: darkColors.text.primary,
+    border: darkColors.border,
+    placeholder: darkColors.text.placeholder,
+    hover: darkColors.text.hover,
+    focus: darkColors.primary,
+    disabled: {
+      background: darkColors.neutrals[100],
+      text: darkColors.text.muted,
+      border: darkColors.neutrals[200],
+    },
   },
 };
 
