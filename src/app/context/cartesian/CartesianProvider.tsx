@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import {
   CartesianProviderProps,
   CartesianPositionsType,
+  UpdatePositions,
 } from "./cartesian.types";
 import CartesianContext from "./CartesianContext";
-import { useUpdateCartesian } from "./hooks/useUpdateCartesian";
 
 const initialPositions: CartesianPositionsType = {
   x: 1,
@@ -19,31 +19,19 @@ const CartesianProvider: React.FC<CartesianProviderProps> = ({ children }) => {
   const [positions, setPositions] =
     useState<CartesianPositionsType>(initialPositions);
 
-  // Set a single cartesian position
-  const setCartesianPosition = (
-    position: keyof CartesianPositionsType,
-    value: number
-  ) => {
-    setPositions((prevPositions) => ({
-      ...prevPositions,
-      [position]: value,
-    }));
+  const updateCartesianPositions = (update: UpdatePositions) => {
+    setPositions((prevPositions) =>
+      "positions" in update
+        ? update.positions
+        : { ...prevPositions, [update.position]: update.value }
+    );
   };
-
-  // Set all cartesian positions
-  const setCartesianPositions = (positions: CartesianPositionsType) => {
-    setPositions(positions);
-  };
-
-  const updateCartesian = useUpdateCartesian();
 
   return (
     <CartesianContext.Provider
       value={{
         positions,
-        setCartesianPosition,
-        setCartesianPositions,
-        updateCartesian,
+        updateCartesianPositions,
       }}
     >
       {children}
