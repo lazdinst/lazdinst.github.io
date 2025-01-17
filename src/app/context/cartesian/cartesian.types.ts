@@ -9,14 +9,13 @@ export interface CartesianPositionsType {
 }
 export interface CartesianContextProps {
   positions: CartesianPositionsType;
-  setCartesianPosition: (
-    position: keyof CartesianPositionsType,
-    value: number
-  ) => void;
-  setCartesianPositions: (positions: CartesianPositionsType) => void;
-  updateCartesian: (positions: CartesianPositionsType) => void;
+  updateCartesianPositions: (update: UpdatePositions) => void;
 }
 
 export interface CartesianProviderProps {
   children: ReactNode;
 }
+
+export type UpdatePositions =
+  | { position: keyof CartesianPositionsType; value: number }
+  | { positions: CartesianPositionsType };
