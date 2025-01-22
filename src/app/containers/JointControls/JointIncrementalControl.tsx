@@ -4,8 +4,11 @@ import { RootState } from "../../../redux";
 import { useJoints } from "../../context";
 import { toDegrees, toRadians } from "../../../utils";
 import { NumericInput } from "../../components";
+import { FormKeys, JointKeys } from "../../../definitions";
+import { JOINT_NAME_MAP } from "../../../constants";
+
 interface JointIncrementalControlsProps {
-  jointName: string;
+  jointName: JointKeys;
   value: number;
 }
 
@@ -18,16 +21,18 @@ const JointIncrementalControls: React.FC<JointIncrementalControlsProps> = ({
   );
   const { updateJoint } = useJoints();
 
-  const handleValueChange = (value: number) => {
+  const handleValueChange = (id: FormKeys, value: number) => {
     const newValue = toRadians(value);
     console.log(newValue);
     if (!isNaN(newValue)) {
-      updateJoint(jointName, newValue);
+      updateJoint(id, newValue);
     }
   };
 
   return (
     <NumericInput
+      id={jointName}
+      label={JOINT_NAME_MAP[jointName]}
       value={value && toDegrees(value)}
       onChange={handleValueChange}
       disabled={jointAnimationEnabled}

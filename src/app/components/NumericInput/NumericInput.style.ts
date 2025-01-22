@@ -49,3 +49,18 @@ export const IncrementButton = styled.button`
     cursor: not-allowed;
   }
 `;
+
+export const NumericInputLabel = styled.label`
+  margin-bottom: 4px;
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+export const NumericInputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 4px;
+  /* width: 100%; */
+  justify-content: space-between;
+`;

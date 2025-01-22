@@ -4,4 +4,5 @@ export { default as DebugHelper } from "./DebugHelper";
 export { default as World } from "./World";
 export { default as JointAnimationToggle } from "./JointAnimationToggle";
 export { default as Introduction } from "./Introduction";
-export { default as CartesianForm } from "./CartesianForm";
+export { default as CartesianControl } from "./CartesianControl";
+export { default as JointAnimationSection } from "./JointAnimationSection";
