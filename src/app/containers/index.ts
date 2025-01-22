@@ -6,3 +6,5 @@ export { default as JointAnimationToggle } from "./JointAnimationToggle";
 export { default as Introduction } from "./Introduction";
 export { default as CartesianControl } from "./CartesianControl";
 export { default as JointAnimationSection } from "./JointAnimationSection";
+export { default as Terminal } from "./Terminal";
+export { default as PluginPanel } from "./PluginPanel";
