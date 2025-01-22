@@ -50,9 +50,9 @@ export function useIdeLayout(): IdeLayout {
     separatorProps: rightSidebarSeparatorProps,
   } = useResizable({
     axis: "x",
-    initial: 200,
-    min: 50,
-    max: rightMax,
+    initial: 332,
+    min: 332, // This value doesnt seem to do anything
+    max: rightMax, // This seems to control the initial
     reverse: true,
   });
 
