@@ -37,7 +37,7 @@ export const RobotArea = styled.div<{ width: number; height: number }>`
   width: ${({ width }) => width || 250}px;
   height: ${({ height }) => (height ? `${height}px` : "100%")};
   flex-grow: 1;
-  background-color: #000000;
+  background-color: ${({ theme }) => theme.colors.surfaces.background};
   position: relative;
   min-width: 0;
 `;

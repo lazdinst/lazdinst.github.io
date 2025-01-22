@@ -4,18 +4,24 @@ import {
   NumericInput,
   IncrementButton,
   NumericButtonContainer,
+  NumericInputLabel,
+  NumericInputContainer,
 } from "./NumericInput.style";
-
+import { FormKeys } from "../../../definitions";
 interface NumericInputProps {
+  id: FormKeys;
+  label?: string;
   value: number;
   min?: number;
   max?: number;
   step?: number;
   disabled?: boolean;
-  onChange: (value: number) => void;
+  onChange: (id: FormKeys, value: number) => void;
 }
 
 const NumericInputComponent: React.FC<NumericInputProps> = ({
+  id,
+  label,
   value,
   min = -Infinity,
   max = Infinity,
@@ -25,41 +31,41 @@ const NumericInputComponent: React.FC<NumericInputProps> = ({
 }) => {
   const incrementValue = () => {
     if (!disabled && value + step <= max) {
-      onChange(value + step);
+      onChange(id, value + step);
     }
   };
 
   const decrementValue = () => {
     if (!disabled && value - step >= min) {
-      onChange(value - step);
+      onChange(id, value - step);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat(e.target.value);
-    if (!isNaN(newValue) && newValue >= min && newValue <= max) {
-      onChange(newValue);
-    }
+  const handleInputChange = (id: FormKeys, value: number) => {
+    onChange(id, value);
   };
 
   return (
-    <NumericInputWrapper>
-      <NumericInput
-        value={value ?? 0}
-        onChange={handleInputChange}
-        disabled={disabled}
-        min={min}
-        max={max}
-      />
-      <NumericButtonContainer>
-        <IncrementButton onClick={incrementValue} disabled={disabled}>
-          +
-        </IncrementButton>
-        <IncrementButton onClick={decrementValue} disabled={disabled}>
-          -
-        </IncrementButton>
-      </NumericButtonContainer>
-    </NumericInputWrapper>
+    <NumericInputContainer>
+      <NumericInputLabel>{label}:</NumericInputLabel>
+      <NumericInputWrapper>
+        <NumericInput
+          value={value ?? 0}
+          onChange={(e) => handleInputChange(id, parseFloat(e.target.value))}
+          disabled={disabled}
+          min={min}
+          max={max}
+        />
+        <NumericButtonContainer>
+          <IncrementButton onClick={incrementValue} disabled={disabled}>
+            +
+          </IncrementButton>
+          <IncrementButton onClick={decrementValue} disabled={disabled}>
+            -
+          </IncrementButton>
+        </NumericButtonContainer>
+      </NumericInputWrapper>
+    </NumericInputContainer>
   );
 };
 

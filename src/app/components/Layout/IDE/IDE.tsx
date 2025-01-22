@@ -14,12 +14,14 @@ interface IDEProps {
   sidebar: ReactNode;
   main: ReactNode;
   plugin: ReactNode;
+  terminal: ReactNode;
 }
 
 const IdeClone: React.FC<IDEProps> = ({
   sidebar,
   main,
   plugin,
+  terminal,
 }): JSX.Element => {
   const {
     leftSidebarWidth,
@@ -72,7 +74,7 @@ const IdeClone: React.FC<IDEProps> = ({
         {...terminalSeparatorProps}
       />
       <Terminal $isDragging={isTerminalDragging} height={terminalH}>
-        Terminal
+        {terminal}
       </Terminal>
     </Wrapper>
   );

@@ -44,5 +44,7 @@ export interface URDFVisual extends THREE.Object3D {
   geometry?: THREE.BufferGeometry; // Geometry is optional but expected
 }
 
+export type JointKeys = "j1" | "j2" | "j3" | "j4" | "j5" | "j6";
+
 // Union of all possible formkeys
-export type FormKeys = keyof CartesianPositionsType;
+export type FormKeys = keyof CartesianPositionsType | JointKeys;

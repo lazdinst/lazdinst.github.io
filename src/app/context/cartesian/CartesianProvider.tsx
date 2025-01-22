@@ -27,11 +27,22 @@ const CartesianProvider: React.FC<CartesianProviderProps> = ({ children }) => {
     );
   };
 
+  const updateCartesianPosition = (
+    id: keyof CartesianPositionsType,
+    value: number
+  ) => {
+    setPositions((prevPositions) => ({
+      ...prevPositions,
+      [id]: value,
+    }));
+  };
+
   return (
     <CartesianContext.Provider
       value={{
         positions,
         updateCartesianPositions,
+        updateCartesianPosition,
       }}
     >
       {children}

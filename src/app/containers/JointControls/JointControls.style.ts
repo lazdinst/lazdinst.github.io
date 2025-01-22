@@ -15,13 +15,6 @@ export const Container = styled.div`
   padding: 0.25rem;
 `;
 
-export const SectionTitle = styled.p`
-  font-size: 1rem;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  color: ${(props) => props.theme.colors.text};
-`;
-
 export const Label = styled.label`
   display: block;
   font-size: 0.875rem;
@@ -36,7 +29,6 @@ export const SliderContainer = styled.div`
 export const JointSettingContainer = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 0.25rem;
 `;
 
@@ -70,4 +62,10 @@ export const CheckboxLabel = styled.label`
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1rem;
+`;
+
+export const ControlsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 300px;
 `;

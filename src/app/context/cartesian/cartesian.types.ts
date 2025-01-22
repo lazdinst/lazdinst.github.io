@@ -10,6 +10,10 @@ export interface CartesianPositionsType {
 export interface CartesianContextProps {
   positions: CartesianPositionsType;
   updateCartesianPositions: (update: UpdatePositions) => void;
+  updateCartesianPosition: (
+    id: keyof CartesianPositionsType,
+    value: number
+  ) => void;
 }
 
 export interface CartesianProviderProps {
