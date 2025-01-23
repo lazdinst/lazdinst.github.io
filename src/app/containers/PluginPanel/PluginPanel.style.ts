@@ -4,9 +4,10 @@ export const PluginPanelContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
+  height: 693px;
   background-color: ${({ theme }) => theme.colors.surfaces.sidebar};
   min-width: 200px;
+  overflow-y: scroll;
 `;
 
 export const PluginTitle = styled.h2`

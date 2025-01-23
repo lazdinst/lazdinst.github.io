@@ -8,3 +8,5 @@ export { default as CartesianControl } from "./CartesianControl";
 export { default as JointAnimationSection } from "./JointAnimationSection";
 export { default as Terminal } from "./Terminal";
 export { default as PluginPanel } from "./PluginPanel";
+export { default as StreamingGraphContainer } from "./StreamingGraphContainer";
+export { default as JointGraphVisualizer } from "./JointGraphVisualizer";

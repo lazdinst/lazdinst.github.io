@@ -13,6 +13,7 @@ export interface JointContextProps {
   updateJoint: (name: string, value: number) => void;
   updateJoints: (joints: { [key: string]: URDFJoint }) => void;
   getJointValues: () => { [key: string]: number };
+  jointBuffer: number[][];
 }
 
 export interface JointProviderProps {
