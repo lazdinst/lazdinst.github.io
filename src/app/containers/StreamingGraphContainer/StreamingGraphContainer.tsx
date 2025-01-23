@@ -22,21 +22,35 @@ const StyledTooltip = styled.div`
 `;
 
 type StreamingGraphContainerProps = {
-  jointData: { time: number; value: number; name: string }[]; // Data type for joint position values
+  data: { time: number; value: number; name: string }[];
 };
 
 const StreamingGraphContainer: React.FC<StreamingGraphContainerProps> = ({
-  jointData,
+  data,
 }) => {
-  console.log(jointData);
-
   return (
-    <div style={{ width: "100%", height: 200 }}>
+    <div style={{ width: 300, height: 200 }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={jointData}>
-          <CartesianGrid />
-          <XAxis dataKey="time" />
-          <YAxis />
+        <LineChart
+          data={data}
+          margin={{ top: 1, right: 1, left: 1, bottom: 1 }}
+        >
+          <CartesianGrid stroke="rgba(0, 0, 0, 0.5)" />
+          <XAxis
+            dataKey="time"
+            tickFormatter={() => "1"}
+            tick={{ fill: "rgb(0,0,0,0)", fontSize: "0.875rem" }}
+            tickLine={{ stroke: "#ededed", strokeWidth: 1 }}
+            tickCount={10}
+            axisLine={{ stroke: "#ededed" }}
+            domain={[0, 1]}
+          />
+          <YAxis
+            domain={[-1, 1]}
+            tick={{ fill: "#ededed", fontSize: "0.875rem" }}
+            axisLine={{ stroke: "#ededed" }}
+            tickLine={{ stroke: "#ededed", strokeWidth: 1 }}
+          />
           <Tooltip
             content={(props) => {
               const { payload, label } = props;
@@ -52,12 +66,15 @@ const StreamingGraphContainer: React.FC<StreamingGraphContainerProps> = ({
               return null;
             }}
           />
-          <Legend />
+          <Legend formatter={() => "Angle (radians)"} />
+
           <Line
             type="monotone"
             dataKey="value"
-            stroke="#8884d8"
+            stroke="#007bff"
+            strokeWidth={1}
             isAnimationActive={false}
+            dot={false}
           />
         </LineChart>
       </ResponsiveContainer>

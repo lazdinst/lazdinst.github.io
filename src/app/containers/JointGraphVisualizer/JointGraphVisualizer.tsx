@@ -1,24 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useJoints } from "../../context";
+import StreamingGraphContainer from "../StreamingGraphContainer";
+import { JOINT_NAME_MAP } from "../../../constants";
+import { JointGraphTitle, GraphContainer } from "./JointGraphVisualizer.style";
+import { Toggle } from "../../components";
 
 const JointGraphVisualizer: React.FC = () => {
-  const { jointValues, jointBuffer } = useJoints();
-  const [joints, setJoints] = useState(jointValues);
-  const [graphData, setGraphData] = useState({});
+  const { jointBuffer } = useJoints();
+  const [isRenderingEnabled, setRenderingEnabled] = useState(true); // Toggle state
 
-  useEffect(() => {
-    setJoints(jointValues);
-    setGraphData((prevData) => {
-      return { ...prevData, ...jointValues };
-    });
-  }, [jointValues]);
+  const toggleRendering = () => {
+    setRenderingEnabled((prev) => !prev);
+  };
 
-  console.log(joints);
   return (
     <div>
-      <pre>{JSON.stringify(joints, null, 2)}</pre>
-      <pre>{JSON.stringify(graphData, null, 2)}</pre>
-      <pre>{JSON.stringify(jointBuffer, null, 2)}</pre>
+      <Toggle
+        label="Graph Renderer"
+        checked={isRenderingEnabled}
+        onChange={() => toggleRendering()}
+      />
+      {isRenderingEnabled && (
+        <GraphContainer>
+          {Object.keys(JOINT_NAME_MAP).map((jointName) => {
+            const jointData = jointBuffer[jointName] || [];
+            return (
+              <div key={jointName} style={{ margin: "10px" }}>
+                <JointGraphTitle>{JOINT_NAME_MAP[jointName]}</JointGraphTitle>
+                <StreamingGraphContainer data={jointData} />
+              </div>
+            );
+          })}
+        </GraphContainer>
+      )}
     </div>
   );
 };

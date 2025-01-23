@@ -1,15 +1,12 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { URDFJoint } from "urdf-loader";
 import { JointProviderProps, JointValuesType } from "./joints.types";
 import JointContext from "./JointContext";
-import { useJointValues } from "./hooks";
-import { CircularBuffer } from "../../../utils";
+import { useJointValues, useJointBuffer } from "./hooks";
 
 const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
-  const buffer = useRef(new CircularBuffer(5));
-
   const [joints, setJointsState] = useState<{ [key: string]: URDFJoint }>({});
-  const [jointBuffer, setJointBuffer] = useState<number[][]>([]);
+  const { jointBuffer, updateBuffer } = useJointBuffer();
 
   const updateJoint = (name: string, value: number) => {
     const joint = joints[name];
@@ -20,7 +17,6 @@ const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
 
   const updateJoints = useCallback(
     (newJoints: { [key: string]: URDFJoint }) => {
-      console.log("im getting called");
       setJointsState((prevJoints) => ({
         ...prevJoints,
         ...newJoints,
@@ -39,9 +35,9 @@ const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
 
   const jointValues = useJointValues(joints);
   useEffect(() => {
-    buffer.current.add(Object.values(jointValues));
-    setJointBuffer(buffer.current.getValues());
-  }, [jointValues]);
+    const time = Date.now();
+    updateBuffer(jointValues, time);
+  }, [jointValues, updateBuffer]);
 
   return (
     <JointContext.Provider
