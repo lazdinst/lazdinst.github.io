@@ -1,11 +1,12 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { URDFJoint } from "urdf-loader";
 import { JointProviderProps, JointValuesType } from "./joints.types";
 import JointContext from "./JointContext";
-import { useJointValues } from "./hooks";
+import { useJointValues, useJointBuffer } from "./hooks";
 
 const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
   const [joints, setJointsState] = useState<{ [key: string]: URDFJoint }>({});
+  const { jointBuffer, updateBuffer } = useJointBuffer();
 
   const updateJoint = (name: string, value: number) => {
     const joint = joints[name];
@@ -33,10 +34,21 @@ const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
   };
 
   const jointValues = useJointValues(joints);
+  useEffect(() => {
+    const time = Date.now();
+    updateBuffer(jointValues, time);
+  }, [jointValues, updateBuffer]);
 
   return (
     <JointContext.Provider
-      value={{ joints, updateJoint, updateJoints, jointValues, getJointValues }}
+      value={{
+        joints,
+        updateJoint,
+        updateJoints,
+        jointValues,
+        getJointValues,
+        jointBuffer,
+      }}
     >
       {children}
     </JointContext.Provider>

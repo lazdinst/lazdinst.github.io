@@ -16,6 +16,7 @@ export const ALLOWED_JOINTS = Object.keys(JOINT_NAME_MAP).reduce(
 );
 
 export const JOINT_STREAM_INTERVAL = 100;
+export const JOINT_EVENT_BUFFER_SIZE = 30;
 
 export const JOINT_CONTROL_INCREMENT = 0.1;
 export const JOINT_CONTROL_CLAMP = 3.14;
