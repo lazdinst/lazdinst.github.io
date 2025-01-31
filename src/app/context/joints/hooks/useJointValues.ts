@@ -6,7 +6,7 @@ import { isEqual } from "../../../../utils";
 
 export const useJointValues = (joints: { [key: string]: URDFJoint }) => {
   const [jointValues, setJointValues] = useState<JointValuesType>({});
-  const previousJointValuesRef = useRef<JointValuesType>({}); // To store the previous values
+  const previousJointValuesRef = useRef<JointValuesType>({});
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -18,7 +18,7 @@ export const useJointValues = (joints: { [key: string]: URDFJoint }) => {
 
       if (!isEqual(values, previousJointValuesRef.current)) {
         setJointValues(values);
-        previousJointValuesRef.current = values; // Update the ref with new values
+        previousJointValuesRef.current = values;
       }
     }, JOINT_STREAM_INTERVAL);
 
