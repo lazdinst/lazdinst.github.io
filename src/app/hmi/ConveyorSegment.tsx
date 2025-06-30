@@ -4,6 +4,8 @@ import { ConveyorSegmentConfig, Device } from "./types";
 import Motor from "./Motor";
 import PhotoEye from "./PhotoEye";
 import PackageComp from "./Package";
+import Scanner from "./Scanner";
+import LPAStation from "./LPAStation";
 import { DIMENSIONS } from "./dimensions";
 import { conveyorColor, conveyorStroke, conveyorGuardColor } from "./hmi.style";
 
@@ -118,6 +120,7 @@ const ConveyorSegment: React.FC<ConveyorSegmentConfig> = ({
         const deviceX = getDeviceX(device, length) * DIMENSIONS.scale;
         const photoeyeX = getDeviceX(device, length) * DIMENSIONS.scale;
         const photoeyeY = (device.y ?? 0) * DIMENSIONS.scale;
+        const deviceY = (device.y ?? 0) * DIMENSIONS.scale;
 
         switch (device.type) {
           case "motor":
@@ -131,6 +134,10 @@ const ConveyorSegment: React.FC<ConveyorSegmentConfig> = ({
             );
           case "photoeye":
             return <PhotoEye key={device.id} x={photoeyeX} y={photoeyeY} />;
+          case "scanner":
+            return <Scanner key={device.id} x={deviceX} y={deviceY} />;
+          case "lpa":
+            return <LPAStation key={device.id} x={deviceX} y={deviceY} />;
           default:
             return null;
         }

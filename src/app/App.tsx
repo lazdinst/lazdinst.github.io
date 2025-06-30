@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState, useEffect } from "react";
 import World from "./containers/World";
 import { SideBar } from "./components";
 import AppProviders from "./providers";
@@ -11,7 +11,7 @@ import {
 } from "./containers";
 import { IDE } from "./components/Layout";
 
-import ProcessFlowDiagram from "./hmi/ProcessFlowDiagram";
+import HMI from "./hmi/HMI";
 
 const IDESideBar = () => (
   <SideBar>
@@ -23,25 +23,6 @@ const IDESideBar = () => (
 
 const IDEMain = () => <World />;
 
-const mockSegments: ConveyorSegmentConfig[] = [
-  {
-    id: "seg1",
-    x: 100,
-    y: 100,
-    length: 300,
-    angle: 0,
-    devices: [
-      { id: "m1", type: "motor", x: 150, y: 0, position: "charge" },
-      { id: "p1", type: "photoeye", x: 250, y: 0 },
-      { id: "p1", type: "photoeye", x: 298, y: 0 },
-    ],
-    packages: [
-      { id: "pkg1", x: 50, y: 0 },
-      { id: "pkg2", x: 200, y: 0 },
-    ],
-  },
-];
-
 const App: FC = () => {
   return (
     <AppProviders>
@@ -51,7 +32,7 @@ const App: FC = () => {
         plugin={<PluginPanel />}
         terminal={<Terminal />}
       /> */}
-      <ProcessFlowDiagram segments={mockSegments} />
+      <HMI />
     </AppProviders>
   );
 };

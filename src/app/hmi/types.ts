@@ -1,6 +1,13 @@
 // src/app/hmi/types.ts
 
-export type DeviceType = "motor" | "photoeye";
+export type DeviceType =
+  | "motor"
+  | "photoeye"
+  | "scanner"
+  | "camera"
+  | "sensor"
+  | "lpa" // Label Printing Application
+  | "custom";
 
 export type DeviceSide = "left" | "right";
 
@@ -9,10 +16,10 @@ export type DevicePosition = "charge" | "discharge" | "custom";
 export interface Device {
   id: string;
   type: DeviceType;
-  position?: DevicePosition; // NEW
   x?: number;
   y?: number;
   side?: DeviceSide;
+  position?: "charge" | "discharge" | "custom";
 }
 
 export interface Package {
