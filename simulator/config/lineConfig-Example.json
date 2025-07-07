@@ -1,0 +1,34 @@
+{
+  "lineName": "Example Production Line",
+  "devices": [
+    {
+      "id": "motor-01",
+      "type": "Motor",
+      "params": {
+        "speed": 0,
+        "status": "Stopped"
+      }
+    },
+    {
+      "id": "photoeye-01",
+      "type": "PhotoEye",
+      "params": {
+        "objectDetected": false
+      }
+    },
+    {
+      "id": "scale-01",
+      "type": "Scale",
+      "params": {
+        "weight": 0.0
+      }
+    },
+    {
+      "id": "estop-01",
+      "type": "EStop",
+      "params": {
+        "engaged": false
+      }
+    }
+  ]
+}

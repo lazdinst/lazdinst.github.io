@@ -1,0 +1,18 @@
+{
+  "Motor": {
+    "speed": 0,
+    "status": "Stopped"
+  },
+  "PhotoEye": {
+    "objectDetected": false
+  },
+  "Scale": {
+    "weight": 0.0
+  },
+  "EStop": {
+    "engaged": false
+  },
+  "Scanner": {
+    "barcode": ""
+  }
+}
