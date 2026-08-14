@@ -1,15 +1,12 @@
-import React from "react";
-
-const Lighting: React.FC = () => {
+const Lighting = () => {
   return (
     <>
-      {/* Ambient Light */}
-      <ambientLight intensity={0.5} />
-
-      {/* Directional Light */}
+      <hemisphereLight args={["#6d7380", "#161616", 0.32]} />
+      <ambientLight intensity={0.18} color="#d8dbe0" />
       <directionalLight
-        intensity={0.5}
+        intensity={1.05}
         position={[5, 10, 7.5]}
+        color="#fff6ea"
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}

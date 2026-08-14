@@ -20,9 +20,3 @@ export const JOINT_EVENT_BUFFER_SIZE = 30;
 
 export const JOINT_CONTROL_INCREMENT = 0.1;
 export const JOINT_CONTROL_CLAMP = 3.14;
-
-// Dynamic Layout Constants
-export const SEPARATOR_WIDTH = 4;
-export const MIN_LEFT_SIDEBAR_WIDTH = 332;
-export const MIN_RIGHT_SIDEBAR_WIDTH = 332;
-export const MIN_CENTER_WIDTH = 510;

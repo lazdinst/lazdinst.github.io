@@ -1,0 +1,229 @@
+:root {
+  --ds-background-100: #ffffff;
+  --ds-background-200: #fafafa;
+
+  --ds-gray-100: #f2f2f2;
+  --ds-gray-200: #ebebeb;
+  --ds-gray-300: #e8e8e8;
+  --ds-gray-400: #e5e5e5;
+  --ds-gray-500: #c9c9c9;
+  --ds-gray-600: #a8a8a8;
+  --ds-gray-700: #8f8f8f;
+  --ds-gray-800: #7d7d7d;
+  --ds-gray-900: #666666;
+  --ds-gray-1000: #171717;
+
+  --ds-gray-alpha-100: rgb(0 0 0 / 5%);
+  --ds-gray-alpha-200: rgb(0 0 0 / 8%);
+  --ds-gray-alpha-300: rgb(0 0 0 / 10%);
+  --ds-gray-alpha-400: rgb(0 0 0 / 12%);
+  --ds-gray-alpha-500: rgb(0 0 0 / 16%);
+  --ds-gray-alpha-600: rgb(0 0 0 / 24%);
+  --ds-gray-alpha-700: rgb(0 0 0 / 36%);
+  --ds-gray-alpha-800: rgb(0 0 0 / 44%);
+  --ds-gray-alpha-900: rgb(0 0 0 / 62%);
+  --ds-gray-alpha-1000: rgb(0 0 0 / 91%);
+
+  --ds-blue-100: #f0f7ff;
+  --ds-blue-200: #e0f0ff;
+  --ds-blue-300: #cce4ff;
+  --ds-blue-400: #b3d7ff;
+  --ds-blue-500: #80bfff;
+  --ds-blue-600: #52a8ff;
+  --ds-blue-700: #0070f3;
+  --ds-blue-800: #0061d4;
+  --ds-blue-900: #0057c2;
+  --ds-blue-1000: #00254d;
+
+  --ds-red-100: #fff0f0;
+  --ds-red-200: #ffe6e6;
+  --ds-red-300: #fdd8d8;
+  --ds-red-400: #f8c9c9;
+  --ds-red-500: #f2a9a9;
+  --ds-red-600: #ea696e;
+  --ds-red-700: #e5484d;
+  --ds-red-800: #c42b32;
+  --ds-red-900: #991b22;
+  --ds-red-1000: #3b1219;
+
+  --ds-amber-100: #fff7e6;
+  --ds-amber-200: #fff1d1;
+  --ds-amber-300: #ffe4ad;
+  --ds-amber-400: #ffd480;
+  --ds-amber-500: #ffc14d;
+  --ds-amber-600: #ffb224;
+  --ds-amber-700: #f5a000;
+  --ds-amber-800: #d68b00;
+  --ds-amber-900: #a35c00;
+  --ds-amber-1000: #4d2900;
+
+  --ds-green-100: #eefbee;
+  --ds-green-200: #ddf6de;
+  --ds-green-300: #c3ecc5;
+  --ds-green-400: #a4dfaa;
+  --ds-green-500: #79ce84;
+  --ds-green-600: #5bb96a;
+  --ds-green-700: #46a758;
+  --ds-green-800: #348547;
+  --ds-green-900: #276338;
+  --ds-green-1000: #1b2d1d;
+
+  --ds-teal-100: #eefbf8;
+  --ds-teal-200: #d5f4ee;
+  --ds-teal-300: #b3ebe0;
+  --ds-teal-400: #86ddd0;
+  --ds-teal-500: #4ecdbc;
+  --ds-teal-600: #12b5a2;
+  --ds-teal-700: #0d9488;
+  --ds-teal-800: #0b7a71;
+  --ds-teal-900: #0a5f59;
+  --ds-teal-1000: #083d3a;
+
+  --ds-purple-100: #f7f3ff;
+  --ds-purple-200: #eee6fe;
+  --ds-purple-300: #e0d2fd;
+  --ds-purple-400: #cbb3fa;
+  --ds-purple-500: #ac85f4;
+  --ds-purple-600: #8e55ec;
+  --ds-purple-700: #7c3aed;
+  --ds-purple-800: #6d28d9;
+  --ds-purple-900: #5b21b6;
+  --ds-purple-1000: #2e1065;
+
+  --ds-pink-100: #fff0f6;
+  --ds-pink-200: #ffe1ee;
+  --ds-pink-300: #ffc6e0;
+  --ds-pink-400: #ff9ecb;
+  --ds-pink-500: #f472b6;
+  --ds-pink-600: #ec4899;
+  --ds-pink-700: #db2777;
+  --ds-pink-800: #be185d;
+  --ds-pink-900: #9d174d;
+  --ds-pink-1000: #500724;
+}
+
+.dark {
+  --ds-background-100: #0a0a0a;
+  --ds-background-200: #000000;
+
+  --ds-gray-100: #1a1a1a;
+  --ds-gray-200: #1f1f1f;
+  --ds-gray-300: #292929;
+  --ds-gray-400: #2e2e2e;
+  --ds-gray-500: #454545;
+  --ds-gray-600: #878787;
+  --ds-gray-700: #8f8f8f;
+  --ds-gray-800: #7d7d7d;
+  --ds-gray-900: #a0a0a0;
+  --ds-gray-1000: #ededed;
+
+  --ds-gray-alpha-100: rgb(255 255 255 / 7%);
+  --ds-gray-alpha-200: rgb(255 255 255 / 9%);
+  --ds-gray-alpha-300: rgb(255 255 255 / 13%);
+  --ds-gray-alpha-400: rgb(255 255 255 / 14%);
+  --ds-gray-alpha-500: rgb(255 255 255 / 24%);
+  --ds-gray-alpha-600: rgb(255 255 255 / 51%);
+  --ds-gray-alpha-700: rgb(255 255 255 / 54%);
+  --ds-gray-alpha-800: rgb(255 255 255 / 47%);
+  --ds-gray-alpha-900: rgb(255 255 255 / 61%);
+  --ds-gray-alpha-1000: rgb(255 255 255 / 92%);
+
+  --ds-blue-100: #06193a;
+  --ds-blue-200: #022248;
+  --ds-blue-300: #002f62;
+  --ds-blue-400: #003674;
+  --ds-blue-500: #00418b;
+  --ds-blue-600: #0090ff;
+  --ds-blue-700: #0070f3;
+  --ds-blue-800: #52a8ff;
+  --ds-blue-900: #82c7ff;
+  --ds-blue-1000: #ebf6ff;
+
+  --ds-red-100: #2a1215;
+  --ds-red-200: #3c161c;
+  --ds-red-300: #4e1b22;
+  --ds-red-400: #5c1f27;
+  --ds-red-500: #7a2832;
+  --ds-red-600: #e5484d;
+  --ds-red-700: #ff6369;
+  --ds-red-800: #ff8b90;
+  --ds-red-900: #ffb2b5;
+  --ds-red-1000: #ffecee;
+
+  --ds-amber-100: #27170a;
+  --ds-amber-200: #3a210c;
+  --ds-amber-300: #4d2c0e;
+  --ds-amber-400: #5c3510;
+  --ds-amber-500: #7a4a14;
+  --ds-amber-600: #ffb224;
+  --ds-amber-700: #ffc14d;
+  --ds-amber-800: #ffd480;
+  --ds-amber-900: #ffe4ad;
+  --ds-amber-1000: #fff7e6;
+
+  --ds-green-100: #0f2314;
+  --ds-green-200: #16341c;
+  --ds-green-300: #1c4525;
+  --ds-green-400: #22542d;
+  --ds-green-500: #2d6e3b;
+  --ds-green-600: #46a758;
+  --ds-green-700: #5bb96a;
+  --ds-green-800: #79ce84;
+  --ds-green-900: #a4dfaa;
+  --ds-green-1000: #eefbee;
+
+  --ds-teal-100: #082825;
+  --ds-teal-200: #0a3531;
+  --ds-teal-300: #0c443f;
+  --ds-teal-400: #0e524c;
+  --ds-teal-500: #116b63;
+  --ds-teal-600: #12b5a2;
+  --ds-teal-700: #4ecdbc;
+  --ds-teal-800: #86ddd0;
+  --ds-teal-900: #b3ebe0;
+  --ds-teal-1000: #eefbf8;
+
+  --ds-purple-100: #1c1233;
+  --ds-purple-200: #271845;
+  --ds-purple-300: #331f5a;
+  --ds-purple-400: #3d256b;
+  --ds-purple-500: #51328e;
+  --ds-purple-600: #7c3aed;
+  --ds-purple-700: #8e55ec;
+  --ds-purple-800: #ac85f4;
+  --ds-purple-900: #cbb3fa;
+  --ds-purple-1000: #f7f3ff;
+
+  --ds-pink-100: #2a0f1c;
+  --ds-pink-200: #3c1528;
+  --ds-pink-300: #4e1b34;
+  --ds-pink-400: #5c203d;
+  --ds-pink-500: #7a2b52;
+  --ds-pink-600: #db2777;
+  --ds-pink-700: #ec4899;
+  --ds-pink-800: #f472b6;
+  --ds-pink-900: #ff9ecb;
+  --ds-pink-1000: #fff0f6;
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+  :root {
+    --ds-blue-700: color(display-p3 0 0.439 0.953);
+    --ds-red-700: color(display-p3 0.851 0.314 0.314);
+    --ds-amber-700: color(display-p3 0.961 0.627 0);
+    --ds-green-700: color(display-p3 0.314 0.647 0.361);
+    --ds-teal-700: color(display-p3 0.051 0.58 0.533);
+    --ds-purple-700: color(display-p3 0.486 0.227 0.929);
+    --ds-pink-700: color(display-p3 0.859 0.153 0.467);
+  }
+
+  .dark {
+    --ds-blue-700: color(display-p3 0 0.439 0.953);
+    --ds-red-700: color(display-p3 1 0.388 0.412);
+    --ds-amber-700: color(display-p3 1 0.757 0.302);
+    --ds-green-700: color(display-p3 0.357 0.725 0.416);
+    --ds-teal-700: color(display-p3 0.306 0.804 0.737);
+    --ds-purple-700: color(display-p3 0.557 0.333 0.925);
+    --ds-pink-700: color(display-p3 0.925 0.282 0.6);
+  }
+}

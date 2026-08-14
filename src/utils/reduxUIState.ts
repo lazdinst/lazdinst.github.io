@@ -1,3 +1,5 @@
+import type { ThemeModeState } from "../redux/slices/theme";
+
 export function loadPlannerState() {
   try {
     const serializedState = localStorage.getItem("planner");
@@ -24,13 +26,24 @@ export function loadUIState() {
   }
 }
 
-export function loadThemeState() {
+export function loadThemeState(): ThemeModeState | undefined {
   try {
     const serializedTheme = localStorage.getItem("theme");
     if (serializedTheme === null) {
       return undefined;
     }
-    return JSON.parse(serializedTheme);
+    const parsed = JSON.parse(serializedTheme) as { mode?: string } | string;
+    if (parsed === "light" || parsed === "dark") {
+      return { mode: parsed };
+    }
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      (parsed.mode === "light" || parsed.mode === "dark")
+    ) {
+      return { mode: parsed.mode };
+    }
+    return undefined;
   } catch (err) {
     console.error("Failed to load theme state from localStorage", err);
     return undefined;

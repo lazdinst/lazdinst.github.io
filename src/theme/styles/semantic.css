@@ -1,0 +1,57 @@
+:root,
+.dark {
+  --background: var(--ds-background-100);
+  --background-secondary: var(--ds-background-200);
+  --surface: var(--ds-gray-100);
+  --surface-hover: var(--ds-gray-200);
+  --surface-active: var(--ds-gray-300);
+  --surface-contrast: var(--ds-gray-700);
+  --overlay: var(--ds-gray-alpha-800);
+
+  --border: var(--ds-gray-400);
+  --border-hover: var(--ds-gray-500);
+  --border-active: var(--ds-gray-600);
+  --input: var(--ds-gray-400);
+
+  --foreground: var(--ds-gray-1000);
+  --foreground-secondary: var(--ds-gray-900);
+  --foreground-muted: var(--ds-gray-900);
+  --placeholder: var(--ds-gray-900);
+  --muted: var(--ds-gray-100);
+  --muted-foreground: var(--ds-gray-900);
+
+  --primary: var(--ds-gray-1000);
+  --primary-foreground: var(--ds-background-100);
+  --secondary: var(--ds-gray-200);
+  --secondary-foreground: var(--ds-gray-1000);
+  --accent: var(--ds-gray-200);
+  --accent-foreground: var(--ds-gray-1000);
+
+  --ring: var(--ds-blue-700);
+  --success: var(--ds-green-800);
+  --warning: var(--ds-amber-800);
+  --destructive: var(--ds-red-800);
+  --info: var(--ds-blue-800);
+
+  --card: var(--ds-background-100);
+  --card-foreground: var(--ds-gray-1000);
+  --popover: var(--ds-background-100);
+  --popover-foreground: var(--ds-gray-1000);
+
+  --sidebar: var(--ds-background-200);
+  --sidebar-foreground: var(--ds-gray-1000);
+  --sidebar-primary: var(--ds-gray-1000);
+  --sidebar-primary-foreground: var(--ds-background-100);
+  --sidebar-accent: var(--ds-gray-200);
+  --sidebar-accent-foreground: var(--ds-gray-1000);
+  --sidebar-border: var(--ds-gray-400);
+  --sidebar-ring: var(--ds-blue-700);
+
+  --chart-1: var(--ds-blue-700);
+  --chart-2: var(--ds-teal-700);
+  --chart-3: var(--ds-amber-700);
+  --chart-4: var(--ds-purple-700);
+  --chart-5: var(--ds-pink-700);
+
+  --radius: 0.5rem;
+}

@@ -3,5 +3,6 @@ export interface SettingsState {
   messages: string[];
   gridEnabled: boolean;
   worldAxis: boolean;
-  jointAnimationEnabled: boolean;
+  ghostEnabled: boolean;
+  angleUnit: "deg" | "rad";
 }

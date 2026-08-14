@@ -1,51 +1,37 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { URDFJoint } from "urdf-loader";
+import { simulationEngine } from "@/simulation";
+import { robotRuntime } from "@/robotics";
 import { JointProviderProps, JointValuesType } from "./joints.types";
 import JointContext from "./JointContext";
-import { useJointValues, useJointBuffer } from "./hooks";
+import { useJointBuffer } from "./hooks";
+import { useRobot } from "../robot";
 
 const JointProvider: React.FC<JointProviderProps> = ({ children }) => {
-  const [joints, setJointsState] = useState<{ [key: string]: URDFJoint }>({});
+  const view = useRobot();
   const { jointBuffer, updateBuffer } = useJointBuffer();
 
   const updateJoint = (name: string, value: number) => {
-    const joint = joints[name];
-    if (joint) {
-      joint.setJointValue(value);
-    }
+    robotRuntime.setJoint(name, value);
   };
 
-  const updateJoints = useCallback(
-    (newJoints: { [key: string]: URDFJoint }) => {
-      setJointsState((prevJoints) => ({
-        ...prevJoints,
-        ...newJoints,
-      }));
-    },
-    []
-  );
+  const updateJoints = useCallback((newJoints: { [key: string]: URDFJoint }) => {
+    void newJoints;
+  }, []);
 
-  const getJointValues = () => {
-    return Object.keys(joints).reduce((values, name) => {
-      const joint = joints[name];
-      values[name] = Number(joint.angle);
-      return values;
-    }, {} as JointValuesType);
-  };
+  const getJointValues = () => view.positionsRad as JointValuesType;
 
-  const jointValues = useJointValues(joints);
   useEffect(() => {
-    const time = Date.now();
-    updateBuffer(jointValues, time);
-  }, [jointValues, updateBuffer]);
+    updateBuffer(view.positionsRad, simulationEngine.getView().timestampMs);
+  }, [view.revision, view.positionsRad, updateBuffer]);
 
   return (
     <JointContext.Provider
       value={{
-        joints,
+        joints: {},
         updateJoint,
         updateJoints,
-        jointValues,
+        jointValues: view.positionsRad,
         getJointValues,
         jointBuffer,
       }}
