@@ -1,13 +1,12 @@
-export function getURDFPath(): string {
+import { DEFAULT_URDF_MODEL } from "@/robotics/models/urdfCatalog";
+
+export function getOptionalUrdfPath(): string | undefined {
   const urdfPath = import.meta.env.VITE_URDF_PATH;
+  return typeof urdfPath === "string" && urdfPath.length > 0
+    ? urdfPath
+    : undefined;
+}
 
-  if (!urdfPath) {
-    console.error(
-      "URDF path is not set. Please set the VITE_URDF_PATH variable in your environment file (e.g., .env, default.env)."
-    );
-    throw new Error("URDF path is required but not set.");
-  }
-
-  console.log(`URDF Path resolved: ${urdfPath}`);
-  return urdfPath;
+export function getURDFPath(): string {
+  return getOptionalUrdfPath() ?? DEFAULT_URDF_MODEL.path;
 }

@@ -4,5 +4,6 @@ export {
   clearUICache,
   toggleWorldGrid,
   toggleWorldAxis,
-  toggleJointAnimation,
+  toggleGhostRobot,
+  toggleAngleUnit,
 } from "./settings";

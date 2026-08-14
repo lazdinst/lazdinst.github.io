@@ -1,53 +1,26 @@
-import React, { useState } from "react";
-import { useJoints } from "../../context";
-import {
-  Container,
-  ToggleButton,
-  JointList,
-  JointItem,
-  Label,
-  ReadOnlyInput,
-} from "./JointStreamer.style";
-import { ALLOWED_JOINTS, JOINT_NAME_MAP } from "../../../constants";
+import { useSelector } from "react-redux";
+import { useRobot } from "../../context";
+import { RootState } from "../../../redux";
+import { formatAngle } from "@/robotics";
 
-const JointStreamer: React.FC = () => {
-  const { jointValues } = useJoints();
-  const [isDegrees, setIsDegrees] = useState(false);
-
-  const toggleUnit = () => {
-    setIsDegrees((prev) => !prev);
-  };
-
-  const formatValue = (value: number | undefined) => {
-    if (value === undefined || isNaN(value)) {
-      return "—";
-    }
-    if (isDegrees) {
-      return `${((value * 180) / Math.PI).toFixed(2)}°`;
-    }
-    return value.toFixed(2);
-  };
+export function JointStreamer() {
+  const { specs, positionsRad } = useRobot();
+  const { angleUnit } = useSelector((state: RootState) => state.settings);
 
   return (
-    <Container>
-      <ToggleButton onClick={toggleUnit}>{isDegrees ? "○" : "π"}</ToggleButton>
-      <JointList>
-        {Object.entries(jointValues)
-          .filter(([jointName]) => ALLOWED_JOINTS[jointName])
-          .map(([jointName, value]) => (
-            <JointItem key={jointName}>
-              <Label htmlFor={jointName}>{JOINT_NAME_MAP[jointName]}:</Label>
-              <ReadOnlyInput
-                id={jointName}
-                type="text"
-                readOnly
-                value={formatValue(value)}
-              />
-            </JointItem>
-          ))}
-      </JointList>
-    </Container>
+    <div className="flex max-w-full min-w-0 items-center gap-2 overflow-x-auto rounded-md border border-border bg-ds-gray-1000/90 px-1.5 py-0.5 text-primary-foreground shadow-sm">
+      {specs.map((spec) => (
+        <div key={spec.id} className="flex items-center gap-0.5">
+          <span className="text-xs font-medium text-primary-foreground/70">
+            {spec.label}
+          </span>
+          <span className="font-mono text-xs tabular-nums">
+            {formatAngle(positionsRad[spec.id] ?? 0, angleUnit)}
+          </span>
+        </div>
+      ))}
+    </div>
   );
-};
+}
 
 export default JointStreamer;

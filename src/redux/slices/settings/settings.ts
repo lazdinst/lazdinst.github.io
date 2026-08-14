@@ -6,7 +6,8 @@ const initialState: SettingsState = {
   messages: [],
   gridEnabled: true,
   worldAxis: true,
-  jointAnimationEnabled: false,
+  ghostEnabled: true,
+  angleUnit: "deg",
 };
 
 const settings = createSlice({
@@ -25,8 +26,11 @@ const settings = createSlice({
     toggleWorldAxis: (state) => {
       state.worldAxis = !state.worldAxis;
     },
-    toggleJointAnimation: (state) => {
-      state.jointAnimationEnabled = !state.jointAnimationEnabled;
+    toggleGhostRobot: (state) => {
+      state.ghostEnabled = !state.ghostEnabled;
+    },
+    toggleAngleUnit: (state) => {
+      state.angleUnit = state.angleUnit === "deg" ? "rad" : "deg";
     },
   },
 });
@@ -36,7 +40,8 @@ export const {
   clearUICache,
   toggleWorldGrid,
   toggleWorldAxis,
-  toggleJointAnimation,
+  toggleGhostRobot,
+  toggleAngleUnit,
 } = settings.actions;
 
 export default settings.reducer;

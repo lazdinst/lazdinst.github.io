@@ -7,11 +7,6 @@ export interface URDFLoaderComponentProps {
   setJoints: (joints: { [key: string]: OriginalURDFJoint }) => void;
 }
 
-// DEPRECATED JOINT ANIMATOR PROPS - JOINTS FROM CONTEXT
-export interface JointAnimatorProps {
-  joints: { [key: string]: OriginalURDFJoint };
-}
-
 // DEPERECATED JOINT CONTROL PROPS - comes from useJoints context
 export interface JointControlsProps {
   joints: { [key: string]: OriginalURDFJoint };

@@ -5,23 +5,22 @@ const initialState: ThemeModeState = {
   mode: "dark",
 };
 
+function persistTheme(state: ThemeModeState) {
+  localStorage.setItem("theme", JSON.stringify(state));
+}
+
 const themeSlice = createSlice({
   name: "theme",
   initialState,
   reducers: {
     setThemeMode: (state, action: PayloadAction<ThemeMode>) => {
       state.mode = action.payload;
-      localStorage.setItem("theme", action.payload);
+      persistTheme(state);
     },
     toggleThemeMode: (state) => {
-      const themeModes: ThemeMode[] = ["dark"];
-      const currentIndex = themeModes.indexOf(state.mode);
-      state.mode = themeModes[(currentIndex + 1) % themeModes.length];
-      localStorage.setItem("theme", JSON.stringify(state));
+      state.mode = state.mode === "dark" ? "light" : "dark";
+      persistTheme(state);
     },
-  },
-  extraReducers: (builder) => {
-    builder.addDefaultCase((state) => state);
   },
 });
 

@@ -1,12 +1,15 @@
-import React from "react";
-import { PluginPanelContainer } from "./PluginPanel.style";
-import { JointGraphVisualizer } from "..";
+import { AnalyticsPanel } from "../AnalyticsPanel/AnalyticsPanel";
+import { JointGraphVisualizer } from "../JointGraphVisualizer/JointGraphVisualizer";
+import { TcpTelemetry } from "../TcpTelemetry";
 
-const PluginPanel: React.FC = () => {
+export function PluginPanel() {
   return (
-    <PluginPanelContainer>
+    <div className="flex flex-col gap-3">
+      <AnalyticsPanel />
+      <TcpTelemetry />
       <JointGraphVisualizer />
-    </PluginPanelContainer>
+    </div>
   );
-};
+}
+
 export default PluginPanel;

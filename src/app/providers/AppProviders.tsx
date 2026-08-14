@@ -1,19 +1,26 @@
 import React from "react";
-import { AppProvidersProps, ProviderComponent } from "./providers.types";
-import { JointProvider, CartesianProvider } from "../context";
-
-const providers: ProviderComponent[] = [JointProvider, CartesianProvider];
+import { HotkeysProvider } from "@tanstack/react-hotkeys";
+import { AppProvidersProps } from "./providers.types";
+import { JointProvider, SimulationProvider } from "../context";
+import { RobotJogHotkeys } from "../hotkeys";
+import "@/workcell/runtime";
+import "@/perception/runtime";
+import "@/simulation/diagnostics/cellDiagnostics";
 
 const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
-    <>
-      {providers.reduceRight(
-        (acc, Provider) => (
-          <Provider>{acc}</Provider>
-        ),
-        children
-      )}
-    </>
+    <SimulationProvider>
+      <JointProvider>
+        <HotkeysProvider
+          defaultOptions={{
+            hotkey: { preventDefault: true, ignoreInputs: true },
+          }}
+        >
+          {children}
+          <RobotJogHotkeys />
+        </HotkeysProvider>
+      </JointProvider>
+    </SimulationProvider>
   );
 };
 

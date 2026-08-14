@@ -1,43 +1,60 @@
-import React from "react";
-import { useJoints } from "../../context";
-import {
-  ControlsContainer,
-  JointSettingContainer,
-} from "./JointControls.style";
-import { SectionTitle, SidebarSection } from "../../components";
-import { ALLOWED_JOINTS, JOINT_NAME_MAP } from "../../../constants";
+import { House } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { JOINTS_HELP } from "../../components/InspectorGroup/inspectorHelp";
+import { PanelSection } from "../../components/PanelSection";
+import { useRobot } from "../../context";
+import { robotRuntime } from "@/robotics";
+import { GhostToggle } from "../GhostToggle/GhostToggle";
 import JointIncrementalControl from "./JointIncrementalControl";
 import JointSlider from "./JointSlider";
-import { JointKeys } from "../../../definitions";
 
-const JointControls: React.FC = () => {
-  const { joints, jointValues } = useJoints();
+export function JointControls() {
+  const { specs, positionsRad } = useRobot();
 
   return (
-    <SidebarSection>
-      <SectionTitle title="Joint Controls" />
-      <ControlsContainer>
-        {Object.keys(joints)
-          .filter((jointName): jointName is JointKeys => {
-            return ALLOWED_JOINTS[jointName] && jointName in JOINT_NAME_MAP;
-          })
-          .map((jointName) => {
-            return (
-              <JointSettingContainer key={jointName}>
-                <JointIncrementalControl
-                  jointName={jointName}
-                  value={jointValues[jointName]}
-                />
-                <JointSlider
-                  jointName={jointName}
-                  value={jointValues[jointName]}
-                />
-              </JointSettingContainer>
-            );
-          })}
-      </ControlsContainer>
-    </SidebarSection>
+    <PanelSection
+      title="Joints"
+      info={JOINTS_HELP}
+      trailing={
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="xs"
+            aria-label="Home robot"
+            onClick={() => robotRuntime.resetPose()}
+          >
+            <House />
+            Home
+          </Button>
+          <GhostToggle />
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-1">
+        {specs.map((spec) => {
+          const radians = positionsRad[spec.id] ?? 0;
+          return (
+            <div key={spec.id} className="flex h-5 items-center gap-1.5">
+              <JointIncrementalControl
+                jointName={spec.id}
+                label={spec.label}
+                value={radians}
+                lowerRad={spec.lowerRad}
+                upperRad={spec.upperRad}
+              />
+              <JointSlider
+                jointName={spec.id}
+                label={spec.label}
+                value={radians}
+                lowerRad={spec.lowerRad}
+                upperRad={spec.upperRad}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </PanelSection>
   );
-};
+}
 
 export default JointControls;

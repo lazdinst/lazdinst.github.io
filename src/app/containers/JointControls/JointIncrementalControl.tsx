@@ -1,46 +1,42 @@
-import React from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../redux";
+import { NumericField } from "../../components/NumericField";
 import { useJoints } from "../../context";
-import { toDegrees, toRadians } from "../../../utils";
-import { NumericInput } from "../../components";
-import { FormKeys, JointKeys } from "../../../definitions";
-import { JOINT_NAME_MAP } from "../../../constants";
+import { RootState } from "../../../redux";
+import { radiansToUnit, unitToRadians } from "@/robotics";
 
 interface JointIncrementalControlsProps {
-  jointName: JointKeys;
+  jointName: string;
+  label: string;
   value: number;
+  lowerRad: number;
+  upperRad: number;
 }
 
-const JointIncrementalControls: React.FC<JointIncrementalControlsProps> = ({
+export default function JointIncrementalControl({
   jointName,
+  label,
   value,
-}) => {
-  const { jointAnimationEnabled } = useSelector(
-    (state: RootState) => state.settings
-  );
+  lowerRad,
+  upperRad,
+}: JointIncrementalControlsProps) {
+  const { angleUnit } = useSelector((state: RootState) => state.settings);
   const { updateJoint } = useJoints();
 
-  const handleValueChange = (id: FormKeys, value: number) => {
-    const newValue = toRadians(value);
-    console.log(newValue);
-    if (!isNaN(newValue)) {
-      updateJoint(id, newValue);
-    }
-  };
-
   return (
-    <NumericInput
+    <NumericField
       id={jointName}
-      label={JOINT_NAME_MAP[jointName]}
-      value={value && toDegrees(value)}
-      onChange={handleValueChange}
-      disabled={jointAnimationEnabled}
-      min={-180}
-      max={180}
-      step={1}
+      label={label}
+      value={Number.isFinite(value) ? radiansToUnit(value, angleUnit) : 0}
+      onChange={(_id, next) => {
+        const radians = unitToRadians(next, angleUnit);
+        if (!Number.isNaN(radians)) {
+          updateJoint(jointName, radians);
+        }
+      }}
+      min={radiansToUnit(lowerRad, angleUnit)}
+      max={radiansToUnit(upperRad, angleUnit)}
+      step={angleUnit === "deg" ? 1 : 0.01}
+      unit={angleUnit === "deg" ? "°" : "rad"}
     />
   );
-};
-
-export default JointIncrementalControls;
+}

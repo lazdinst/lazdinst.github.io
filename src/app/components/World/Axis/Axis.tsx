@@ -1,11 +1,9 @@
-import React, { useEffect } from "react";
-import * as THREE from "three";
-import { useThree } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 
 interface AxesHelperProps {
   axisLength?: number;
 }
+
 const OFFSET = 0.1;
 const TEXT_SIZE = 0.1;
 
@@ -15,20 +13,10 @@ const AXIS_COLORS = {
   z: "blue",
 };
 
-const AxesHelper: React.FC<AxesHelperProps> = ({ axisLength = 2 }) => {
-  const { scene } = useThree();
-
-  useEffect(() => {
-    const axesHelper = new THREE.AxesHelper(axisLength);
-    scene.add(axesHelper);
-
-    return () => {
-      scene.remove(axesHelper);
-    };
-  }, [scene, axisLength]);
-
+const AxesHelper = ({ axisLength = 2 }: AxesHelperProps) => {
   return (
-    <>
+    <group>
+      <axesHelper args={[axisLength]} />
       <Text
         position={[axisLength + OFFSET, 0, 0]}
         fontSize={TEXT_SIZE}
@@ -51,7 +39,7 @@ const AxesHelper: React.FC<AxesHelperProps> = ({ axisLength = 2 }) => {
       >
         Z
       </Text>
-    </>
+    </group>
   );
 };
 

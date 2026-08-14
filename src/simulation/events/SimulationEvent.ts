@@ -1,0 +1,74 @@
+export type EventSeverity =
+  | "debug"
+  | "info"
+  | "warning"
+  | "error"
+  | "critical";
+
+export const SimulationEventCode = {
+  SIM_STARTED: "SIM_STARTED",
+  SIM_PAUSED: "SIM_PAUSED",
+  SIM_RESUMED: "SIM_RESUMED",
+  SIM_RESET: "SIM_RESET",
+  HEARTBEAT: "HEARTBEAT",
+  URDF_LOADED: "URDF_LOADED",
+  MODEL_CHANGED: "MODEL_CHANGED",
+  JOINT_LIMIT_REJECTED: "JOINT_LIMIT_REJECTED",
+  POSE_HOMED: "POSE_HOMED",
+  TCP_COMMANDED: "TCP_COMMANDED",
+  IK_UNREACHABLE: "IK_UNREACHABLE",
+  IK_SINGULARITY: "IK_SINGULARITY",
+  PARTS_SPAWNED: "PARTS_SPAWNED",
+  PART_SELECTED: "PART_SELECTED",
+  OBJECT_DETECTED: "OBJECT_DETECTED",
+  POSE_ESTIMATED: "POSE_ESTIMATED",
+  GRASP_SELECTED: "GRASP_SELECTED",
+  MOTION_PLAN_READY: "MOTION_PLAN_READY",
+  APPROACH_COMPLETE: "APPROACH_COMPLETE",
+  VACUUM_ENABLED: "VACUUM_ENABLED",
+  GRASP_CONFIRMED: "GRASP_CONFIRMED",
+  GRASP_FAILED: "GRASP_FAILED",
+  PICK_FAILED: "PICK_FAILED",
+  CYCLE_COMPLETE: "CYCLE_COMPLETE",
+  PERCEPTION_FRAME: "PERCEPTION_FRAME",
+  GRIPPER_CONTACT: "GRIPPER_CONTACT",
+  VACUUM_LOW: "VACUUM_LOW",
+  SLIP_DETECTED: "SLIP_DETECTED",
+  SAFETY_WARNING: "SAFETY_WARNING",
+  SAFETY_STOP: "SAFETY_STOP",
+  RECOVERY_STARTED: "RECOVERY_STARTED",
+  FAULT_INJECTED: "FAULT_INJECTED",
+  FAULT_CLEARED: "FAULT_CLEARED",
+  CAMERA_OFFLINE: "CAMERA_OFFLINE",
+  PLC_LOSS: "PLC_LOSS",
+  CONVEYOR_JAM: "CONVEYOR_JAM",
+  MOTOR_OVERHEAT: "MOTOR_OVERHEAT",
+  JOINT_OVERLOAD: "JOINT_OVERLOAD",
+  SCENARIO_LOADED: "SCENARIO_LOADED",
+  PLAYBACK_SEEK: "PLAYBACK_SEEK",
+  CYCLE_STARTED: "CYCLE_STARTED",
+} as const;
+
+export interface SimulationEvent {
+  id: string;
+  timestampMs: number;
+  loggedAtMs: number;
+  severity: EventSeverity;
+  source: string;
+  eventCode: string;
+  message: string;
+  metadata?: Record<string, unknown>;
+}
+
+export function createSimulationEvent(
+  id: string,
+  timestampMs: number,
+  fields: Omit<SimulationEvent, "id" | "timestampMs" | "loggedAtMs">
+): SimulationEvent {
+  return {
+    id,
+    timestampMs,
+    loggedAtMs: Date.now(),
+    ...fields,
+  };
+}

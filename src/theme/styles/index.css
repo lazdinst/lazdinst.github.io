@@ -1,0 +1,228 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "./tokens.css";
+@import "./semantic.css";
+@import "./hud.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Geist Variable", sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+  --color-surface-contrast: var(--surface-contrast);
+  --color-overlay: var(--overlay);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-border-active: var(--border-active);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-placeholder: var(--placeholder);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-ds-background-100: var(--ds-background-100);
+  --color-ds-background-200: var(--ds-background-200);
+  --color-ds-gray-100: var(--ds-gray-100);
+  --color-ds-gray-200: var(--ds-gray-200);
+  --color-ds-gray-300: var(--ds-gray-300);
+  --color-ds-gray-400: var(--ds-gray-400);
+  --color-ds-gray-500: var(--ds-gray-500);
+  --color-ds-gray-600: var(--ds-gray-600);
+  --color-ds-gray-700: var(--ds-gray-700);
+  --color-ds-gray-800: var(--ds-gray-800);
+  --color-ds-gray-900: var(--ds-gray-900);
+  --color-ds-gray-1000: var(--ds-gray-1000);
+  --color-ds-gray-alpha-100: var(--ds-gray-alpha-100);
+  --color-ds-gray-alpha-200: var(--ds-gray-alpha-200);
+  --color-ds-gray-alpha-300: var(--ds-gray-alpha-300);
+  --color-ds-gray-alpha-400: var(--ds-gray-alpha-400);
+  --color-ds-gray-alpha-500: var(--ds-gray-alpha-500);
+  --color-ds-gray-alpha-600: var(--ds-gray-alpha-600);
+  --color-ds-gray-alpha-700: var(--ds-gray-alpha-700);
+  --color-ds-gray-alpha-800: var(--ds-gray-alpha-800);
+  --color-ds-gray-alpha-900: var(--ds-gray-alpha-900);
+  --color-ds-gray-alpha-1000: var(--ds-gray-alpha-1000);
+  --color-ds-blue-100: var(--ds-blue-100);
+  --color-ds-blue-200: var(--ds-blue-200);
+  --color-ds-blue-300: var(--ds-blue-300);
+  --color-ds-blue-400: var(--ds-blue-400);
+  --color-ds-blue-500: var(--ds-blue-500);
+  --color-ds-blue-600: var(--ds-blue-600);
+  --color-ds-blue-700: var(--ds-blue-700);
+  --color-ds-blue-800: var(--ds-blue-800);
+  --color-ds-blue-900: var(--ds-blue-900);
+  --color-ds-blue-1000: var(--ds-blue-1000);
+  --color-ds-red-100: var(--ds-red-100);
+  --color-ds-red-200: var(--ds-red-200);
+  --color-ds-red-300: var(--ds-red-300);
+  --color-ds-red-400: var(--ds-red-400);
+  --color-ds-red-500: var(--ds-red-500);
+  --color-ds-red-600: var(--ds-red-600);
+  --color-ds-red-700: var(--ds-red-700);
+  --color-ds-red-800: var(--ds-red-800);
+  --color-ds-red-900: var(--ds-red-900);
+  --color-ds-red-1000: var(--ds-red-1000);
+  --color-ds-amber-100: var(--ds-amber-100);
+  --color-ds-amber-200: var(--ds-amber-200);
+  --color-ds-amber-300: var(--ds-amber-300);
+  --color-ds-amber-400: var(--ds-amber-400);
+  --color-ds-amber-500: var(--ds-amber-500);
+  --color-ds-amber-600: var(--ds-amber-600);
+  --color-ds-amber-700: var(--ds-amber-700);
+  --color-ds-amber-800: var(--ds-amber-800);
+  --color-ds-amber-900: var(--ds-amber-900);
+  --color-ds-amber-1000: var(--ds-amber-1000);
+  --color-ds-green-100: var(--ds-green-100);
+  --color-ds-green-200: var(--ds-green-200);
+  --color-ds-green-300: var(--ds-green-300);
+  --color-ds-green-400: var(--ds-green-400);
+  --color-ds-green-500: var(--ds-green-500);
+  --color-ds-green-600: var(--ds-green-600);
+  --color-ds-green-700: var(--ds-green-700);
+  --color-ds-green-800: var(--ds-green-800);
+  --color-ds-green-900: var(--ds-green-900);
+  --color-ds-green-1000: var(--ds-green-1000);
+  --color-ds-teal-100: var(--ds-teal-100);
+  --color-ds-teal-200: var(--ds-teal-200);
+  --color-ds-teal-300: var(--ds-teal-300);
+  --color-ds-teal-400: var(--ds-teal-400);
+  --color-ds-teal-500: var(--ds-teal-500);
+  --color-ds-teal-600: var(--ds-teal-600);
+  --color-ds-teal-700: var(--ds-teal-700);
+  --color-ds-teal-800: var(--ds-teal-800);
+  --color-ds-teal-900: var(--ds-teal-900);
+  --color-ds-teal-1000: var(--ds-teal-1000);
+  --color-ds-purple-100: var(--ds-purple-100);
+  --color-ds-purple-200: var(--ds-purple-200);
+  --color-ds-purple-300: var(--ds-purple-300);
+  --color-ds-purple-400: var(--ds-purple-400);
+  --color-ds-purple-500: var(--ds-purple-500);
+  --color-ds-purple-600: var(--ds-purple-600);
+  --color-ds-purple-700: var(--ds-purple-700);
+  --color-ds-purple-800: var(--ds-purple-800);
+  --color-ds-purple-900: var(--ds-purple-900);
+  --color-ds-purple-1000: var(--ds-purple-1000);
+  --color-ds-pink-100: var(--ds-pink-100);
+  --color-ds-pink-200: var(--ds-pink-200);
+  --color-ds-pink-300: var(--ds-pink-300);
+  --color-ds-pink-400: var(--ds-pink-400);
+  --color-ds-pink-500: var(--ds-pink-500);
+  --color-ds-pink-600: var(--ds-pink-600);
+  --color-ds-pink-700: var(--ds-pink-700);
+  --color-ds-pink-800: var(--ds-pink-800);
+  --color-ds-pink-900: var(--ds-pink-900);
+  --color-ds-pink-1000: var(--ds-pink-1000);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply m-0 bg-background text-xs text-foreground antialiased;
+  }
+
+  input[type="number"] {
+    appearance: textfield;
+    @apply text-xs leading-none;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  *::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--ds-gray-500);
+    border-radius: 999px;
+  }
+}
+
+@layer utilities {
+  .pane-scrollbar-gutter {
+    --pane-scrollbar-gap: 0.5rem;
+  }
+
+  .pane-scrollbar-gutter [data-slot="scroll-area-viewport"] > * {
+    padding-inline-end: calc(0.5rem + var(--pane-scrollbar-gap));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
