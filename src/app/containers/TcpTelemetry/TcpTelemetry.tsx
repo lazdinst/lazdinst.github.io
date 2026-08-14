@@ -56,7 +56,7 @@ export function TcpTelemetry() {
               value={
                 snapshot.robot?.fault
                   ? "fault"
-                  : (snapshot.robot?.controllerMode ?? "").replaceAll("_", " ")
+                  : (snapshot.robot?.controllerMode ?? "").replace(/_/g, " ")
               }
             />
           </dl>
