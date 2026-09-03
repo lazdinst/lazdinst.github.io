@@ -1,0 +1,142 @@
+/* Leaflet chrome restyled with the app's theme tokens. Vector layers are
+   colored through classes so they follow the light/dark toggle. */
+.fl-map {
+  background: var(--background);
+  font-family: var(--font-sans);
+  outline: none;
+}
+.fl-map.fl-pick {
+  cursor: crosshair;
+}
+.fl-map .leaflet-control-attribution {
+  background: color-mix(in oklch, var(--background) 85%, transparent);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 0 4px;
+}
+.fl-map .leaflet-control-attribution a {
+  color: var(--foreground);
+}
+.fl-map .leaflet-tile {
+  filter: saturate(0.85);
+}
+
+/* Markers */
+.fl-marker-wrap {
+  background: none;
+  border: 0;
+}
+.fl-marker {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+}
+.fl-tone-ok { color: var(--success); }
+.fl-tone-info { color: var(--chart-1); }
+.fl-tone-warn { color: var(--warning); }
+.fl-tone-alert { color: var(--destructive); }
+.fl-marker-rot {
+  width: 18px;
+  height: 18px;
+  transform: rotate(var(--heading, 0deg));
+  transition: transform 120ms linear;
+}
+.fl-marker svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  stroke: var(--background);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.fl-marker.fl-selected::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ring);
+}
+.fl-marker.fl-live::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  opacity: 0.6;
+  animation: fl-ping 1.8s ease-out infinite;
+}
+@keyframes fl-ping {
+  0% { transform: scale(0.7); opacity: 0.7; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-marker.fl-live::after { animation: none; }
+  .fl-marker-rot { transition: none; }
+}
+
+/* Tooltips and labels */
+.fl-map .fl-tooltip {
+  background: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 14px;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+.fl-map .fl-tooltip::before {
+  display: none;
+}
+.fl-map .fl-label {
+  background: transparent;
+  border: 0;
+  color: var(--muted-foreground);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 0 2px;
+}
+.fl-map .fl-tooltip.fl-selected-tip {
+  border-color: var(--ring);
+}
+
+/* Vector layers */
+.fl-zone { fill-opacity: 0.08; stroke-width: 1; stroke-dasharray: 4 3; }
+.fl-zone-no_fly { stroke: var(--destructive); fill: var(--destructive); }
+.fl-zone-restricted { stroke: var(--destructive); fill: var(--destructive); fill-opacity: 0.18; stroke-dasharray: none; }
+.fl-zone-hazard { stroke: var(--warning); fill: var(--warning); }
+.fl-zone-shallow_water { stroke: var(--chart-2); fill: var(--chart-2); }
+.fl-zone-low_comms { stroke: var(--chart-4); fill: var(--chart-4); }
+.fl-terrain { stroke: none; }
+.fl-terrain-wetland { fill: var(--chart-2); fill-opacity: 0.12; }
+.fl-terrain-urban { fill: var(--ds-gray-700); fill-opacity: 0.14; }
+.fl-terrain-steep { fill: var(--ds-amber-700); fill-opacity: 0.1; }
+.fl-road { fill: none; stroke: var(--foreground); stroke-opacity: 0.22; stroke-width: 2; }
+.fl-coverage { stroke: var(--chart-1); stroke-opacity: 0.35; stroke-width: 1; stroke-dasharray: 2 4; fill: var(--chart-1); fill-opacity: 0.03; }
+.fl-coverage-off { stroke: var(--destructive); stroke-dasharray: 1 3; fill: var(--destructive); fill-opacity: 0.02; }
+.fl-relay { fill: var(--chart-1); stroke: var(--background); stroke-width: 1.5; }
+.fl-relay-off { fill: var(--destructive); }
+.fl-depot { fill: var(--foreground); stroke: var(--background); stroke-width: 1.5; }
+.fl-waypoint { fill: var(--background); stroke: var(--muted-foreground); stroke-width: 1.5; }
+.fl-target { fill: var(--background); fill-opacity: 0.6; stroke: var(--chart-1); stroke-width: 2; }
+.fl-survey { stroke: var(--chart-3); stroke-width: 1; stroke-dasharray: 3 3; fill: var(--chart-3); fill-opacity: 0.06; }
+.fl-patrol-draft { fill: none; stroke: var(--muted-foreground); stroke-width: 1; stroke-dasharray: 2 3; }
+.fl-path { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.fl-path-candidate { stroke-opacity: 0.6; stroke-width: 1.5; stroke-dasharray: 5 4; }
+.fl-path-direct { stroke: var(--chart-1); }
+.fl-path-safe { stroke: var(--chart-2); }
+.fl-path-efficient { stroke: var(--chart-2); }
+.fl-path-candidate.fl-path-selected { stroke-opacity: 1; stroke-width: 3; stroke-dasharray: none; }
+.fl-path-mission { stroke: var(--chart-1); stroke-opacity: 0.9; stroke-width: 2; }
+.fl-path-mission.fl-path-rtb { stroke: var(--chart-3); }
+.fl-path-mission.fl-path-patrol { stroke: var(--chart-2); stroke-opacity: 0.6; }
+.fl-path-mission.fl-path-focus { stroke-width: 3; }
+.fl-path-travelled { stroke: var(--muted-foreground); stroke-opacity: 0.55; stroke-width: 2; }

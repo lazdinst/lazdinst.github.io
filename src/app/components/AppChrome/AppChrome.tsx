@@ -4,10 +4,14 @@ import { useAppChromeLayout } from "./hooks/useAppChromeLayout";
 import type { AppChromeSlots } from "./types/AppChromeSlots";
 
 export function AppChrome({
+  commandBar,
+  commandBarTrailing,
   inspector,
   stage,
   auxiliary,
   output,
+  inspectorTitle = "Inspector",
+  auxiliaryTitle = "Telemetry",
 }: AppChromeSlots) {
   const {
     isNarrow,
@@ -25,13 +29,20 @@ export function AppChrome({
         isShort={isShort}
         inspectorOpen={inspectorOpen}
         auxiliaryOpen={auxiliaryOpen}
+        inspectorTitle={inspectorTitle}
+        auxiliaryTitle={auxiliaryTitle}
         onTogglePane={togglePane}
-      />
+        trailing={commandBarTrailing}
+      >
+        {commandBar}
+      </AppCommandBar>
       <AppWorkspace
         inspector={inspector}
         stage={stage}
         auxiliary={auxiliary}
         output={output}
+        inspectorTitle={inspectorTitle}
+        auxiliaryTitle={auxiliaryTitle}
         isNarrow={isNarrow}
         isCompact={isCompact}
         isShort={isShort}

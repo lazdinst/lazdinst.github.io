@@ -4,6 +4,10 @@ import { APP_TITLE } from "../components/AppChrome/constants/chromeLayout";
 import AppProviders from "../providers";
 import { EventTimeline } from "../containers/EventTimeline/EventTimeline";
 import { JointInspector } from "../containers/JointInspector";
+import {
+  AngleUnitToggle,
+  WorkcellCommandBar,
+} from "../containers/WorkcellCommandBar";
 import { PluginPanel, Terminal, World } from "../containers";
 
 /** The robot workcell console, mounted as a full-screen showcase. */
@@ -15,6 +19,8 @@ const WorkcellShowcase: FC = () => {
   return (
     <AppProviders>
       <AppChrome
+        commandBar={<WorkcellCommandBar />}
+        commandBarTrailing={<AngleUnitToggle />}
         inspector={<JointInspector />}
         stage={<World />}
         auxiliary={<PluginPanel />}

@@ -33,6 +33,8 @@ interface AppWorkspaceProps {
   stage: ReactNode;
   auxiliary: ReactNode;
   output: ReactNode;
+  inspectorTitle: string;
+  auxiliaryTitle: string;
   isNarrow: boolean;
   isCompact: boolean;
   isShort: boolean;
@@ -46,6 +48,8 @@ export function AppWorkspace({
   stage,
   auxiliary,
   output,
+  inspectorTitle,
+  auxiliaryTitle,
   isNarrow,
   isCompact,
   isShort,
@@ -65,7 +69,7 @@ export function AppWorkspace({
               className={PANEL_FILL_CLASS}
               style={PANEL_OVERFLOW_STYLE}
             >
-              <InspectorPane>{inspector}</InspectorPane>
+              <InspectorPane title={inspectorTitle}>{inspector}</InspectorPane>
             </ResizablePanel>
             <ResizableHandle />
           </>
@@ -106,7 +110,7 @@ export function AppWorkspace({
               className={PANEL_FILL_CLASS}
               style={PANEL_OVERFLOW_STYLE}
             >
-              <AuxiliaryPane>{auxiliary}</AuxiliaryPane>
+              <AuxiliaryPane title={auxiliaryTitle}>{auxiliary}</AuxiliaryPane>
             </ResizablePanel>
           </>
         ) : null}
@@ -120,9 +124,10 @@ export function AppWorkspace({
             onClose={() => onTogglePane("inspector")}
           >
             <InspectorPane
+              title={inspectorTitle}
               trailing={
                 <PaneCloseButton
-                  label="Close inspector"
+                  label={`Close ${inspectorTitle.toLowerCase()}`}
                   onClick={() => onTogglePane("inspector")}
                 />
               }
@@ -137,9 +142,10 @@ export function AppWorkspace({
             onClose={() => onTogglePane("auxiliary")}
           >
             <AuxiliaryPane
+              title={auxiliaryTitle}
               trailing={
                 <PaneCloseButton
-                  label="Close telemetry"
+                  label={`Close ${auxiliaryTitle.toLowerCase()}`}
                   onClick={() => onTogglePane("auxiliary")}
                 />
               }

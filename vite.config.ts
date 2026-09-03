@@ -49,6 +49,7 @@ export default defineConfig({
       "src/workcell/**/*.test.ts",
       "src/perception/**/*.test.ts",
       "src/app/hotkeys/**/*.test.ts",
+      "src/fleet/**/*.test.ts",
     ],
     environment: "node",
   },
@@ -60,6 +61,7 @@ export default defineConfig({
         manualChunks: {
           react: ["react", "react-dom"],
           three: ["three"],
+          leaflet: ["leaflet", "react-leaflet"],
         },
       },
     },
