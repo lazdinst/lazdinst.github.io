@@ -1,0 +1,11 @@
+export { AboutSection } from "./AboutSection";
+export { ContactSection } from "./ContactSection";
+export { EducationSection } from "./EducationSection";
+export { ExperienceSection } from "./ExperienceSection";
+export { Hero } from "./Hero";
+export { PortfolioFooter } from "./PortfolioFooter";
+export { PortfolioHeader } from "./PortfolioHeader";
+export { PortfolioSection } from "./PortfolioSection";
+export { ProfileAside } from "./ProfileAside";
+export { ProjectCard } from "./ProjectCard";
+export { ProjectsSection } from "./ProjectsSection";

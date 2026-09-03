@@ -1,15 +1,16 @@
 import {
   Activity,
+  ArrowLeft,
   Bot,
-  Moon,
+  PanelLeft,
   Pause,
   Play,
   Radio,
   RotateCcw,
   StepForward,
-  Sun,
 } from "lucide-react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,9 +19,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toggleAngleUnit } from "@/redux/slices/settings";
-import { toggleThemeMode } from "@/redux/slices/theme";
 import { RootState, useAppDispatch } from "@/redux/store";
+import { ThemeToggle } from "../../ThemeToggle";
 import { APP_TITLE } from "../constants/chromeLayout";
+import type { ChromePane } from "../hooks/useAppChromeLayout";
 import { cn } from "@/lib/utils";
 import { useDiagnostics, useRobot, useSimulation } from "@/app/context";
 import { URDF_MODELS, robotRuntime } from "@/robotics";
@@ -37,8 +39,9 @@ import {
 interface AppCommandBarProps {
   isNarrow: boolean;
   isShort: boolean;
+  inspectorOpen: boolean;
   auxiliaryOpen: boolean;
-  onToggleAuxiliary: () => void;
+  onTogglePane: (pane: ChromePane) => void;
 }
 
 const STATUS_LABEL: Record<CellStatus, string> = {
@@ -52,11 +55,11 @@ const STATUS_LABEL: Record<CellStatus, string> = {
 export function AppCommandBar({
   isNarrow,
   isShort,
+  inspectorOpen,
   auxiliaryOpen,
-  onToggleAuxiliary,
+  onTogglePane,
 }: AppCommandBarProps) {
   const dispatch = useAppDispatch();
-  const mode = useSelector((state: RootState) => state.theme.mode);
   const { angleUnit } = useSelector((state: RootState) => state.settings);
   const { status, timestampMs, cellStatus, playbackMode } = useSimulation();
   const { model } = useRobot();
@@ -69,14 +72,50 @@ export function AppCommandBar({
         isShort ? "h-6" : "h-7"
       )}
     >
-      <div className="flex min-w-0 items-center gap-2">
-        <h1 className="truncate text-xs font-medium text-foreground">
+      <div className="flex min-w-0 items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="shrink-0"
+                aria-label="Back to portfolio"
+                nativeButton={false}
+                render={<Link to="/" />}
+              />
+            }
+          >
+            <ArrowLeft />
+          </TooltipTrigger>
+          <TooltipContent>Back to portfolio</TooltipContent>
+        </Tooltip>
+        {isNarrow ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant={inspectorOpen ? "secondary" : "ghost"}
+                  size="icon-xs"
+                  className="shrink-0"
+                  aria-label="Toggle inspector"
+                  aria-pressed={inspectorOpen}
+                  onClick={() => onTogglePane("inspector")}
+                />
+              }
+            >
+              <PanelLeft />
+            </TooltipTrigger>
+            <TooltipContent>Inspector</TooltipContent>
+          </Tooltip>
+        ) : null}
+        <h1 className="shrink-0 truncate text-xs font-medium text-foreground">
           {APP_TITLE}
         </h1>
         <Badge
           variant="outline"
           className={cn(
-            "font-mono font-normal tracking-wide",
+            "shrink-0 font-mono font-normal tracking-wide",
             cellStatus === "running" && "border-success/40 text-success",
             cellStatus === "paused" && "border-warning/40 text-warning",
             (cellStatus === "fault" || cellStatus === "protective_stop") &&
@@ -85,7 +124,7 @@ export function AppCommandBar({
         >
           {STATUS_LABEL[cellStatus]}
         </Badge>
-        <span className="font-mono text-xs tabular-nums text-muted-foreground">
+        <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
           {formatSimTimeSeconds(timestampMs)}
         </span>
         <div className="flex shrink-0 items-center gap-1">
@@ -185,7 +224,7 @@ export function AppCommandBar({
         </label>
         <select
           id="urdf-model"
-          className="h-5 max-w-36 truncate rounded-sm border border-border bg-background px-1 font-mono text-xs text-muted-foreground"
+          className="h-5 max-w-36 shrink-0 truncate rounded-sm border border-border bg-background px-1 font-mono text-xs text-muted-foreground"
           value={model.id}
           aria-label="Robot model"
           onChange={(event) => robotRuntime.selectModel(event.target.value)}
@@ -197,7 +236,7 @@ export function AppCommandBar({
           ))}
         </select>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         {isNarrow ? (
           <Tooltip>
             <TooltipTrigger
@@ -207,7 +246,7 @@ export function AppCommandBar({
                   size="icon-xs"
                   aria-label="Toggle telemetry"
                   aria-pressed={auxiliaryOpen}
-                  onClick={onToggleAuxiliary}
+                  onClick={() => onTogglePane("auxiliary")}
                 />
               }
             >
@@ -232,23 +271,7 @@ export function AppCommandBar({
           </TooltipTrigger>
           <TooltipContent>Angle unit</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                aria-label="Toggle theme"
-                onClick={() => dispatch(toggleThemeMode())}
-              />
-            }
-          >
-            {mode === "dark" ? <Sun /> : <Moon />}
-          </TooltipTrigger>
-          <TooltipContent>
-            {mode === "dark" ? "Light theme" : "Dark theme"}
-          </TooltipContent>
-        </Tooltip>
+        <ThemeToggle />
       </div>
     </header>
   );

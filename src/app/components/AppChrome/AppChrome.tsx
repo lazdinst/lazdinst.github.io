@@ -9,16 +9,23 @@ export function AppChrome({
   auxiliary,
   output,
 }: AppChromeSlots) {
-  const { isNarrow, isShort, auxiliaryOpen, setAuxiliaryOpen } =
-    useAppChromeLayout();
+  const {
+    isNarrow,
+    isCompact,
+    isShort,
+    inspectorOpen,
+    auxiliaryOpen,
+    togglePane,
+  } = useAppChromeLayout();
 
   return (
     <div className="flex h-svh w-svw flex-col overflow-hidden bg-background text-foreground">
       <AppCommandBar
         isNarrow={isNarrow}
         isShort={isShort}
+        inspectorOpen={inspectorOpen}
         auxiliaryOpen={auxiliaryOpen}
-        onToggleAuxiliary={() => setAuxiliaryOpen((open) => !open)}
+        onTogglePane={togglePane}
       />
       <AppWorkspace
         inspector={inspector}
@@ -26,8 +33,11 @@ export function AppChrome({
         auxiliary={auxiliary}
         output={output}
         isNarrow={isNarrow}
+        isCompact={isCompact}
         isShort={isShort}
+        inspectorOpen={inspectorOpen}
         auxiliaryOpen={auxiliaryOpen}
+        onTogglePane={togglePane}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
@@ -8,8 +9,34 @@ import { defineConfig } from "vitest/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+/**
+ * GitHub Pages serves 404.html for unknown paths. Copying index.html there
+ * lets BrowserRouter handle deep links such as /showcase/workcell.
+ */
+function spaFallback(): PluginOption {
+  let outDir = path.resolve(__dirname, "docs");
+  return {
+    name: "spa-fallback-404",
+    apply: "build",
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      const index = path.join(outDir, "index.html");
+      if (fs.existsSync(index)) {
+        fs.copyFileSync(index, path.join(outDir, "404.html"));
+      }
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), visualizer() as PluginOption],
+  plugins: [
+    react(),
+    tailwindcss(),
+    spaFallback(),
+    visualizer() as PluginOption,
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
