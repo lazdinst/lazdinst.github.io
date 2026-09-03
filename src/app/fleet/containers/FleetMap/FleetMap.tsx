@@ -89,7 +89,9 @@ export function FleetMap() {
   }, [area.center]);
 
   return (
-    <div ref={containerRef} className="relative h-full min-h-0 w-full min-w-0">
+    // `isolate` keeps Leaflet's pane z-indexes (400–1000) inside the map so
+    // portaled popovers and tooltips at z-50 still render above it.
+    <div ref={containerRef} className="relative isolate h-full min-h-0 w-full min-w-0">
       <MapContainer
         ref={mapRef}
         center={[area.center.lat, area.center.lng]}
@@ -122,7 +124,7 @@ export function FleetMap() {
         />
       </MapContainer>
 
-      <div className="pointer-events-none absolute inset-x-0 top-2 z-[500] flex flex-col items-center gap-1 px-12">
+      <div className="pointer-events-none absolute inset-x-0 top-2 z-[1001] flex flex-col items-center gap-1 px-12">
         <SelectedOverlay />
         {draft.pickMode ? (
           <div className="pointer-events-auto flex items-center gap-1 rounded-md border border-chart-1/40 bg-background/90 px-2 py-0.5 font-mono text-xs text-chart-1 shadow-sm">
@@ -134,7 +136,7 @@ export function FleetMap() {
           </div>
         ) : null}
       </div>
-      <div className="pointer-events-none absolute bottom-5 left-2 z-[500]">
+      <div className="pointer-events-none absolute bottom-5 left-2 z-[1001]">
         <MapHud
           mapRef={mapRef}
           layers={layers}
