@@ -20,9 +20,12 @@ import {
   STAGE_MIN_SIZE,
   STAGE_VERTICAL_MIN_SIZE,
 } from "../constants/chromeLayout";
+import type { ChromePane } from "../hooks/useAppChromeLayout";
 import { AppOutputBar } from "./AppOutputBar";
 import { AuxiliaryPane } from "./AuxiliaryPane";
 import { InspectorPane } from "./InspectorPane";
+import { OverlayPane } from "./OverlayPane";
+import { PaneCloseButton } from "./PaneCloseButton";
 import { StagePane } from "./StagePane";
 
 interface AppWorkspaceProps {
@@ -30,9 +33,14 @@ interface AppWorkspaceProps {
   stage: ReactNode;
   auxiliary: ReactNode;
   output: ReactNode;
+  inspectorTitle: string;
+  auxiliaryTitle: string;
   isNarrow: boolean;
+  isCompact: boolean;
   isShort: boolean;
+  inspectorOpen: boolean;
   auxiliaryOpen: boolean;
+  onTogglePane: (pane: ChromePane) => void;
 }
 
 export function AppWorkspace({
@@ -40,23 +48,32 @@ export function AppWorkspace({
   stage,
   auxiliary,
   output,
+  inspectorTitle,
+  auxiliaryTitle,
   isNarrow,
+  isCompact,
   isShort,
+  inspectorOpen,
   auxiliaryOpen,
+  onTogglePane,
 }: AppWorkspaceProps) {
   return (
     <div className="relative min-h-0 flex-1">
       <ResizablePanelGroup orientation="horizontal" className="h-full">
-        <ResizablePanel
-          defaultSize={INSPECTOR_DEFAULT_SIZE}
-          minSize={INSPECTOR_MIN_SIZE}
-          maxSize={INSPECTOR_MAX_SIZE}
-          className={PANEL_FILL_CLASS}
-          style={PANEL_OVERFLOW_STYLE}
-        >
-          <InspectorPane>{inspector}</InspectorPane>
-        </ResizablePanel>
-        <ResizableHandle />
+        {!isNarrow ? (
+          <>
+            <ResizablePanel
+              defaultSize={INSPECTOR_DEFAULT_SIZE}
+              minSize={INSPECTOR_MIN_SIZE}
+              maxSize={INSPECTOR_MAX_SIZE}
+              className={PANEL_FILL_CLASS}
+              style={PANEL_OVERFLOW_STYLE}
+            >
+              <InspectorPane title={inspectorTitle}>{inspector}</InspectorPane>
+            </ResizablePanel>
+            <ResizableHandle />
+          </>
+        ) : null}
         <ResizablePanel
           minSize={STAGE_MIN_SIZE}
           className={PANEL_FILL_CLASS}
@@ -93,15 +110,50 @@ export function AppWorkspace({
               className={PANEL_FILL_CLASS}
               style={PANEL_OVERFLOW_STYLE}
             >
-              <AuxiliaryPane>{auxiliary}</AuxiliaryPane>
+              <AuxiliaryPane title={auxiliaryTitle}>{auxiliary}</AuxiliaryPane>
             </ResizablePanel>
           </>
         ) : null}
       </ResizablePanelGroup>
-      {isNarrow && auxiliaryOpen ? (
-        <div className="absolute inset-y-0 right-0 z-20 w-[min(100%,20rem)] border-l border-border">
-          <AuxiliaryPane>{auxiliary}</AuxiliaryPane>
-        </div>
+      {isNarrow ? (
+        <>
+          <OverlayPane
+            side="left"
+            open={inspectorOpen}
+            withScrim={isCompact}
+            onClose={() => onTogglePane("inspector")}
+          >
+            <InspectorPane
+              title={inspectorTitle}
+              trailing={
+                <PaneCloseButton
+                  label={`Close ${inspectorTitle.toLowerCase()}`}
+                  onClick={() => onTogglePane("inspector")}
+                />
+              }
+            >
+              {inspector}
+            </InspectorPane>
+          </OverlayPane>
+          <OverlayPane
+            side="right"
+            open={auxiliaryOpen}
+            withScrim={isCompact}
+            onClose={() => onTogglePane("auxiliary")}
+          >
+            <AuxiliaryPane
+              title={auxiliaryTitle}
+              trailing={
+                <PaneCloseButton
+                  label={`Close ${auxiliaryTitle.toLowerCase()}`}
+                  onClick={() => onTogglePane("auxiliary")}
+                />
+              }
+            >
+              {auxiliary}
+            </AuxiliaryPane>
+          </OverlayPane>
+        </>
       ) : null}
     </div>
   );

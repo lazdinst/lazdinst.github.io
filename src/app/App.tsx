@@ -1,27 +1,40 @@
-import { FC } from "react";
-import { AppChrome } from "./components/AppChrome";
-import AppProviders from "./providers";
-import { EventTimeline } from "./containers/EventTimeline/EventTimeline";
-import { JointInspector } from "./containers/JointInspector";
-import { PluginPanel, Terminal, World } from "./containers";
+import { FC, Suspense, lazy } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { PortfolioPage } from "@/portfolio";
+
+// The showcases pull in three.js, the URDF loader, Leaflet, and the simulation
+// runtimes, so each only loads when someone actually opens it.
+const WorkcellShowcase = lazy(() => import("./pages/WorkcellShowcase"));
+const FleetShowcase = lazy(() => import("./fleet/FleetShowcase"));
+
+const ShowcaseFallback: FC<{ label: string }> = ({ label }) => (
+  <div className="flex h-svh w-svw items-center justify-center bg-background font-mono text-xs text-muted-foreground">
+    <span className="hud-live">loading {label}…</span>
+  </div>
+);
 
 const App: FC = () => {
   return (
-    <AppProviders>
-      <AppChrome
-        inspector={<JointInspector />}
-        stage={<World />}
-        auxiliary={<PluginPanel />}
-        output={
-          <div className="flex h-full min-h-0 flex-col">
-            <EventTimeline />
-            <div className="min-h-0 flex-1">
-              <Terminal />
-            </div>
-          </div>
+    <Routes>
+      <Route path="/" element={<PortfolioPage />} />
+      <Route
+        path="/showcase/workcell"
+        element={
+          <Suspense fallback={<ShowcaseFallback label="workcell" />}>
+            <WorkcellShowcase />
+          </Suspense>
         }
       />
-    </AppProviders>
+      <Route
+        path="/showcase/fleet"
+        element={
+          <Suspense fallback={<ShowcaseFallback label="fleet" />}>
+            <FleetShowcase />
+          </Suspense>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 

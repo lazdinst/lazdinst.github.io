@@ -7,3 +7,4 @@ export { InspectorGroup } from "./InspectorGroup";
 export { SectionInfo } from "./SectionInfo";
 export { JointRow } from "./JointRow";
 export { AppChrome } from "./AppChrome";
+export { ThemeToggle } from "./ThemeToggle";
