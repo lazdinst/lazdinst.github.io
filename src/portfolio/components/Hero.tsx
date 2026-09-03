@@ -1,5 +1,4 @@
-import { ArrowUpRight, MapPin } from "lucide-react";
-import { Link } from "react-router-dom";
+import { MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -17,15 +16,13 @@ interface HeroProps {
 }
 
 export function Hero({ profile }: HeroProps) {
-  const featured = profile.projects.find((project) => project.featured);
-
   return (
     <section id="top" className="flex scroll-mt-10 flex-col gap-4 py-6 sm:py-10">
       <div className="flex flex-wrap items-center gap-2">
         <Badge
           variant="outline"
           className={cn(
-            "font-mono font-normal tracking-wide",
+            "font-sans font-medium tracking-wide",
             TONE_CLASS[profile.availability.tone]
           )}
         >
@@ -58,12 +55,6 @@ export function Hero({ profile }: HeroProps) {
       </p>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        {featured?.route ? (
-          <Button nativeButton={false} render={<Link to={featured.route} />}>
-            Open {featured.title}
-            <ArrowUpRight />
-          </Button>
-        ) : null}
         {profile.links.map((link) => (
           <Button
             key={link.kind}

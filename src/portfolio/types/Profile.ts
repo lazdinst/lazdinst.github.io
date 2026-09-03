@@ -18,9 +18,17 @@ export interface SkillGroup {
   items: string[];
 }
 
+export interface PriorRole {
+  role: string;
+  start: string;
+  end: string;
+}
+
 export interface ExperienceEntry {
   company: string;
   role: string;
+  /** Earlier titles held at the same company, most recent first. */
+  priorRoles?: PriorRole[];
   location?: string;
   /** Free-form, e.g. "2022" or "Mar 2022". */
   start: string;

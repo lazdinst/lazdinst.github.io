@@ -46,6 +46,25 @@ export function ExperienceSection({ experience }: ExperienceSectionProps) {
                   {entry.company}
                   {entry.location ? ` · ${entry.location}` : null}
                 </p>
+                {entry.priorRoles && entry.priorRoles.length > 0 ? (
+                  <ul className="mt-1 flex flex-col gap-0.5">
+                    {entry.priorRoles.map((prior) => (
+                      <li
+                        key={`${prior.role}-${prior.start}`}
+                        className="flex items-baseline gap-2 text-xs text-muted-foreground"
+                      >
+                        {prior.start || prior.end ? (
+                          <span className="font-mono text-[10px] tabular-nums">
+                            {prior.start} — {prior.end}
+                          </span>
+                        ) : (
+                          <span className="font-mono text-[10px]">earlier</span>
+                        )}
+                        <span>{prior.role}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
               {entry.summary ? (
                 <p className="text-xs leading-relaxed text-foreground">
@@ -59,7 +78,7 @@ export function ExperienceSection({ experience }: ExperienceSectionProps) {
                     className="flex gap-2 text-xs leading-relaxed text-muted-foreground"
                   >
                     <span
-                      className="mt-[0.45rem] size-1 shrink-0 rounded-full bg-chart-1"
+                      className="mt-[0.45rem] size-1 shrink-0 rounded-full bg-brand"
                       aria-hidden
                     />
                     <span>{highlight}</span>

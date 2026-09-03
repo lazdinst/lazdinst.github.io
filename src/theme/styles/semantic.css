@@ -27,7 +27,11 @@
   --accent: var(--ds-gray-200);
   --accent-foreground: var(--ds-gray-1000);
 
-  --ring: var(--ds-blue-700);
+  /* Site accent: focus rings, HUD corners, primary chart series. */
+  --brand: var(--ds-green-700);
+  --brand-foreground: var(--ds-background-100);
+
+  --ring: var(--brand);
   --success: var(--ds-green-800);
   --warning: var(--ds-amber-800);
   --destructive: var(--ds-red-800);
@@ -45,10 +49,10 @@
   --sidebar-accent: var(--ds-gray-200);
   --sidebar-accent-foreground: var(--ds-gray-1000);
   --sidebar-border: var(--ds-gray-400);
-  --sidebar-ring: var(--ds-blue-700);
+  --sidebar-ring: var(--brand);
 
-  --chart-1: var(--ds-blue-700);
-  --chart-2: var(--ds-teal-700);
+  --chart-1: var(--brand);
+  --chart-2: var(--ds-blue-700);
   --chart-3: var(--ds-amber-700);
   --chart-4: var(--ds-purple-700);
   --chart-5: var(--ds-pink-700);

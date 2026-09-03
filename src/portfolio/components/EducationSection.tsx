@@ -25,9 +25,13 @@ export function EducationSection({ education }: EducationSectionProps) {
                 <h3 className="text-sm font-medium text-foreground">
                   {entry.degree}
                 </h3>
-                <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
-                  {entry.start} — {entry.end}
-                </span>
+                {entry.start || entry.end ? (
+                  <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
+                    {entry.start === entry.end
+                      ? entry.start
+                      : `${entry.start} — ${entry.end}`}
+                  </span>
+                ) : null}
               </div>
               <p className="text-xs text-muted-foreground">{entry.school}</p>
               {entry.detail ? (

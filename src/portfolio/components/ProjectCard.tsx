@@ -24,7 +24,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-col gap-0.5">
             {featured ? (
-              <span className="font-mono text-[10px] tracking-[0.16em] text-chart-1 uppercase">
+              <span className="font-mono text-[10px] tracking-[0.16em] text-brand uppercase">
                 Featured · Live demo
               </span>
             ) : null}

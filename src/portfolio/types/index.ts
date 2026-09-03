@@ -4,6 +4,7 @@ export type {
   EducationEntry,
   ExperienceEntry,
   LinkKind,
+  PriorRole,
   Profile,
   ProfileLink,
   ProjectEntry,
