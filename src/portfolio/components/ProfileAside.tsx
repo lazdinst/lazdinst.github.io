@@ -12,25 +12,6 @@ export function ProfileAside({ profile }: ProfileAsideProps) {
     <aside className="flex flex-col gap-3 lg:sticky lg:top-10 lg:self-start">
       <div className="hud-skin hud-skin-plain rounded-md border border-border bg-sidebar p-3">
         <div className="relative z-[1] flex flex-col gap-3">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted font-mono text-sm text-foreground"
-              aria-hidden
-            >
-              {profile.initials}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-xs font-medium text-foreground">
-                {profile.name}
-              </p>
-              <p className="truncate text-[10px] text-muted-foreground">
-                {profile.title}
-              </p>
-            </div>
-          </div>
-
-          <Separator />
-
           <div className="flex flex-col gap-2">
             <h3 className="text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
               Skills

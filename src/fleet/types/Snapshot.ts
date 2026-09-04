@@ -44,6 +44,8 @@ export interface FleetSnapshot {
 export interface FleetView {
   status: SimulationStatus;
   timestampMs: number;
+  /** Wall-clock ms at sim time zero; `epochMs + timestampMs` is the sim clock. */
+  epochMs: number;
   timeScale: number;
   playbackMode: PlaybackMode;
   scrubTimestampMs: number | null;

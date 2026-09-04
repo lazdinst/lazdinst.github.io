@@ -2,7 +2,7 @@ import { FC, useEffect } from "react";
 import { FleetProvider } from "./providers/FleetProvider";
 import { FleetShell } from "./shell/FleetShell";
 
-export const FLEET_TITLE = "Fleet Ops";
+export const FLEET_TITLE = "SkyNet";
 
 /** Autonomous fleet mapping, sensor integration, and mission dispatch. */
 const FleetShowcase: FC = () => {

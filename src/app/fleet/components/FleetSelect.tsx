@@ -46,7 +46,7 @@ const CLEAR = "__clear__";
 
 /**
  * Compact popover select in the command-bar style: 20 px mono trigger,
- * themed popup with icons and descriptions. Replaces native selects in Fleet Ops.
+ * themed popup with icons and descriptions. Replaces native selects in SkyNet.
  */
 export function FleetSelect<V extends string>({
   value,

@@ -33,7 +33,7 @@ export const EngagementAreaLayer = memo(function EngagementAreaLayer({ areas }: 
         <Polygon
           key={area.id}
           positions={area.polygon.map(toTuple)}
-          pathOptions={{ className: "fl-engagement-area", interactive: false }}
+          className={"fl-engagement-area"} interactive={false}
         >
           <Tooltip permanent direction="center" className="fl-tooltip fl-label" opacity={1}>
             {area.label}
@@ -55,7 +55,7 @@ export function WeaponRangeLayer({ assets }: { assets: Asset[] }) {
             key={asset.id}
             center={toTuple(asset.position)}
             radius={asset.weapon!.system.rangeM}
-            pathOptions={{ className: "fl-weapon-range", interactive: false }}
+            className={"fl-weapon-range"} interactive={false}
           />
         ))}
     </>
@@ -112,7 +112,7 @@ function HostileMarker({
         <Circle
           center={toTuple(hostile.position)}
           radius={hostile.weaponRangeM}
-          pathOptions={{ className: "fl-hostile-range", interactive: false }}
+          className={"fl-hostile-range"} interactive={false}
         />
       ) : null}
       <Marker

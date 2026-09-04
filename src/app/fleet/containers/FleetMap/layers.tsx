@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, type ReactNode } from "react";
-import type { Marker as LeafletMarker } from "leaflet";
+import { divIcon, type DivIcon, type Marker as LeafletMarker } from "leaflet";
 import {
   Circle,
   CircleMarker,
@@ -34,14 +34,14 @@ export const TerrainLayer = memo(function TerrainLayer({ area }: { area: Operati
         <Polygon
           key={patch.id}
           positions={toTuples(patch.polygon)}
-          pathOptions={{ className: `fl-terrain fl-terrain-${patch.class}`, interactive: false }}
+          className={`fl-terrain fl-terrain-${patch.class}`} interactive={false}
         />
       ))}
       {area.roads.map((road) => (
         <Polyline
           key={road.id}
           positions={toTuples(road.points)}
-          pathOptions={{ className: "fl-road", interactive: false }}
+          className={"fl-road"} interactive={false}
         />
       ))}
     </>
@@ -55,10 +55,10 @@ export const CoverageLayer = memo(function CoverageLayer({ area, scenario }: { a
         const off = scenario.disabledRelayIds.includes(relay.id);
         return (
           <Circle
-            key={relay.id}
+            key={`${relay.id}:${off ? "off" : "on"}`}
             center={toTuple(relay.position)}
             radius={off ? relay.rangeM * 0.15 : relay.rangeM * scenario.linkRangeScale}
-            pathOptions={{ className: cn("fl-coverage", off && "fl-coverage-off"), interactive: false }}
+            className={cn("fl-coverage", off && "fl-coverage-off")} interactive={false}
           />
         );
       })}
@@ -66,10 +66,10 @@ export const CoverageLayer = memo(function CoverageLayer({ area, scenario }: { a
         const off = scenario.disabledRelayIds.includes(relay.id);
         return (
           <CircleMarker
-            key={`${relay.id}-pin`}
+            key={`${relay.id}-pin:${off ? "off" : "on"}`}
             center={toTuple(relay.position)}
             radius={3}
-            pathOptions={{ className: cn("fl-relay", off && "fl-relay-off") }}
+            className={cn("fl-relay", off && "fl-relay-off")}
           >
             <Tooltip direction="right" offset={[6, 0]} className="fl-tooltip" opacity={1}>
               {relay.name} · {off ? "OFFLINE" : `${((relay.rangeM * scenario.linkRangeScale) / 1000).toFixed(1)} km`}
@@ -81,27 +81,56 @@ export const CoverageLayer = memo(function CoverageLayer({ area, scenario }: { a
   );
 });
 
+const DEPOT_GLYPH = {
+  // Lucide "house" and "anchor" outlines.
+  house:
+    '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  anchor: '<path d="M12 22V8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><circle cx="12" cy="5" r="3"/>',
+} as const;
+
+const depotIconCache = new Map<string, DivIcon>();
+
+/** Home-base badge: a rounded square with a house (land) or anchor (sea) outline. */
+function depotIcon(glyph: keyof typeof DEPOT_GLYPH): DivIcon {
+  let icon = depotIconCache.get(glyph);
+  if (!icon) {
+    // A pin: the badge floats above the coordinate so devices parked at the
+    // depot do not hide it, and a stem points at the exact spot.
+    icon = divIcon({
+      className: "fl-depot-wrap",
+      iconSize: [24, 32],
+      iconAnchor: [12, 32],
+      tooltipAnchor: [12, -26],
+      html: `<div class="fl-depot-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${DEPOT_GLYPH[glyph]}</svg></div>`,
+    });
+    depotIconCache.set(glyph, icon);
+  }
+  return icon;
+}
+
 export const SitesLayer = memo(function SitesLayer({ area, labels }: { area: OperatingArea; labels: boolean }) {
   return (
     <>
       {area.depots.map((depot) => (
-        <CircleMarker
+        <Marker
           key={depot.id}
-          center={toTuple(depot.position)}
-          radius={5}
-          pathOptions={{ className: "fl-depot" }}
+          position={toTuple(depot.position)}
+          icon={depotIcon(depot.domains.every((domain) => domain === "sea") ? "anchor" : "house")}
+          zIndexOffset={-100}
+          keyboard={false}
+          alt={depot.name}
         >
-          <Tooltip key={labels ? "p" : "h"} permanent direction="right" offset={[6, 0]} className="fl-tooltip fl-label" opacity={1}>
+          <Tooltip key={labels ? "p" : "h"} permanent direction="right" offset={[2, 0]} className="fl-tooltip fl-label fl-depot-label" opacity={1}>
             {depot.name.toUpperCase()}
           </Tooltip>
-        </CircleMarker>
+        </Marker>
       ))}
       {area.waypoints.map((waypoint) => (
         <CircleMarker
           key={waypoint.id}
           center={toTuple(waypoint.position)}
           radius={3}
-          pathOptions={{ className: "fl-waypoint" }}
+          className={"fl-waypoint"}
         >
           <Tooltip key={labels ? "p" : "h"} permanent={labels} direction="right" offset={[5, 0]} className="fl-tooltip fl-label" opacity={1}>
             {waypoint.label}
@@ -127,10 +156,10 @@ function StablePolyline({
   onClick?: () => void;
 }) {
   const positions = useMemo(() => toTuples(points), [points]);
-  const pathOptions = useMemo(() => ({ className, interactive }), [className, interactive]);
   const handlers = useMemo(() => (onClick ? { click: onClick } : undefined), [onClick]);
+  // Leaflet reads className only when the path is created, so remount on change.
   return (
-    <Polyline positions={positions} pathOptions={pathOptions} eventHandlers={handlers}>
+    <Polyline key={className} positions={positions} className={className} interactive={interactive} eventHandlers={handlers}>
       {children}
     </Polyline>
   );
@@ -168,14 +197,14 @@ export function PathLayer({ snapshot }: { snapshot: FleetSnapshot }) {
             {travelled.length > 1 ? (
               <Polyline
                 positions={toTuples(travelled)}
-                pathOptions={{ className: "fl-path fl-path-travelled", interactive: false }}
+                className={"fl-path fl-path-travelled"} interactive={false}
               />
             ) : null}
             {mission.objective.type !== "patrol" ? (
               <CircleMarker
                 center={toTuple(path[path.length - 1])}
                 radius={4}
-                pathOptions={{ className: "fl-target", interactive: false }}
+                className={"fl-target"} interactive={false}
               />
             ) : null}
           </span>
@@ -210,7 +239,7 @@ function CandidatePath({ coa, selected }: { coa: CourseOfAction; selected: boole
 export function PlannerDraftLayer({ draft, area }: { draft: PlannerDraft; area: OperatingArea }) {
   if (draft.objectiveType === "transit" && draft.pickedTarget) {
     return (
-      <CircleMarker center={toTuple(draft.pickedTarget)} radius={6} pathOptions={{ className: "fl-target" }}>
+      <CircleMarker center={toTuple(draft.pickedTarget)} radius={6} className={"fl-target"}>
         <Tooltip permanent direction="top" offset={[0, -8]} className="fl-tooltip fl-label" opacity={1}>
           TARGET
         </Tooltip>
@@ -221,7 +250,7 @@ export function PlannerDraftLayer({ draft, area }: { draft: PlannerDraft; area: 
     const surveyArea = area.surveyAreas.find((candidate) => candidate.id === draft.surveyAreaId);
     if (!surveyArea) return null;
     return (
-      <Polygon positions={toTuples(surveyArea.polygon)} pathOptions={{ className: "fl-survey", interactive: false }}>
+      <Polygon positions={toTuples(surveyArea.polygon)} className={"fl-survey"} interactive={false}>
         <Tooltip permanent direction="center" className="fl-tooltip fl-label" opacity={1}>
           {surveyArea.label.toUpperCase()}
         </Tooltip>
@@ -234,7 +263,7 @@ export function PlannerDraftLayer({ draft, area }: { draft: PlannerDraft; area: 
       .filter((point): point is LatLng => point !== undefined);
     if (points.length < 2) return null;
     return (
-      <Polyline positions={toTuples([...points, points[0]])} pathOptions={{ className: "fl-patrol-draft", interactive: false }} />
+      <Polyline positions={toTuples([...points, points[0]])} className={"fl-patrol-draft"} interactive={false} />
     );
   }
   return null;
@@ -246,12 +275,15 @@ export function AssetMarkers({
   labels,
   favorites,
   onContextMenu,
+  onSelect,
 }: {
   assets: Asset[];
   selectedId: string | null;
   labels: boolean;
   favorites: string[];
   onContextMenu: (asset: Asset, clientX: number, clientY: number) => void;
+  /** Runs after a marker click selects the asset. */
+  onSelect?: (asset: Asset) => void;
 }) {
   return (
     <>
@@ -263,6 +295,7 @@ export function AssetMarkers({
           labels={labels}
           favorite={favorites.includes(asset.id)}
           onContextMenu={onContextMenu}
+          onSelect={onSelect}
         />
       ))}
     </>
@@ -275,12 +308,15 @@ function AssetMarker({
   labels,
   favorite,
   onContextMenu,
+  onSelect,
 }: {
   asset: Asset;
   selected: boolean;
   labels: boolean;
   favorite: boolean;
   onContextMenu: (asset: Asset, clientX: number, clientY: number) => void;
+  /** Runs after a marker click selects the asset. */
+  onSelect?: (asset: Asset) => void;
 }) {
   const ref = useRef<LeafletMarker | null>(null);
   const lostLink = asset.status === "lost_link";
@@ -312,7 +348,10 @@ function AssetMarker({
       alt={asset.callsign}
       bubblingMouseEvents={false}
       eventHandlers={{
-        click: () => fleetRuntime.selectAsset(asset.id),
+        click: () => {
+          fleetRuntime.selectAsset(asset.id);
+          onSelect?.(asset);
+        },
         contextmenu: (event) => {
           event.originalEvent.preventDefault();
           onContextMenu(asset, event.originalEvent.clientX, event.originalEvent.clientY);

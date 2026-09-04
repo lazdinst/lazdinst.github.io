@@ -1,7 +1,7 @@
 import { EventConsole } from "@/app/components/EventConsole";
 import { EventTimeline } from "@/app/components/EventTimeline";
 import { FLEET_TIMELINE_CODES, fleetRuntime } from "@/fleet";
-import { formatSimTimeSeconds } from "@/simulation";
+import { formatSimClock } from "@/simulation";
 import { useFleetEvents, useFleetView } from "../../hooks";
 
 export function FleetLog() {
@@ -23,7 +23,7 @@ export function FleetLog() {
         <EventConsole
           events={events}
           status={view.status}
-          formatTime={(ms) => formatSimTimeSeconds(ms, 1)}
+          formatTime={(ms) => formatSimClock(view.epochMs, ms)}
           onSeek={(ms) => fleetRuntime.seek(ms)}
           emptyLabel="waiting for fleet events"
           idPrefix="fleet-event"

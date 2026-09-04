@@ -153,6 +153,8 @@ export class FleetRuntime {
   private area: OperatingArea;
   private readonly defaultZones: Zone[];
   private readonly clock: SimulationClock;
+  /** Wall-clock ms at sim time zero, so timestamps can render as a clock. */
+  private epochMs = Date.now();
   private readonly history: RingBuffer<FleetSnapshot>;
   private readonly eventLog: EventLog;
   private readonly planner: FleetPlanner;
@@ -229,6 +231,7 @@ export class FleetRuntime {
   reset(): void {
     const wasRunning = this.clock.isRunning();
     this.clock.reset();
+    this.epochMs = Date.now();
     this.accumulatorMs = 0;
     this.stepCount = 0;
     this.eventSeq = 0;
@@ -522,7 +525,18 @@ export class FleetRuntime {
 
   /** True when the current zone set differs from the shipped defaults. */
   zonesModified(): boolean {
-    return this.area.zones !== this.defaultZones;
+    if (this.area.zones === this.defaultZones) return false;
+    if (this.area.zones.length !== this.defaultZones.length) return true;
+    return this.area.zones.some((zone, index) => {
+      const base = this.defaultZones[index];
+      return (
+        zone.id !== base.id ||
+        zone.name !== base.name ||
+        zone.type !== base.type ||
+        zone.polygon.length !== base.polygon.length ||
+        zone.polygon.some((point, i) => point.lat !== base.polygon[i].lat || point.lng !== base.polygon[i].lng)
+      );
+    });
   }
 
   addZone(input: Partial<ZoneInput> & Pick<ZoneInput, "type" | "polygon">): Zone | null {
@@ -1520,6 +1534,7 @@ export class FleetRuntime {
         this.playbackMode === "scrub" && this.scrubTimestampMs !== null
           ? this.scrubTimestampMs
           : this.clock.getSimTimeMs(),
+      epochMs: this.epochMs,
       timeScale: this.clock.getTimeScale(),
       playbackMode: this.playbackMode,
       scrubTimestampMs: this.scrubTimestampMs,

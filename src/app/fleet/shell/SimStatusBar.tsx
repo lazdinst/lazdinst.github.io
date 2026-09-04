@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
 import { fleetRuntime } from "@/fleet";
-import { formatSimTimeSeconds } from "@/simulation";
+import { formatSimClock } from "@/simulation";
 import { cn } from "@/lib/utils";
 import { useFleetSnapshot, useFleetView } from "../hooks";
 import { deriveAlerts } from "./deriveAlerts";
@@ -28,7 +28,7 @@ export function SimStatusBar({ logOpen, onToggleLog }: SimStatusBarProps) {
 
   return (
     <div className="pointer-events-auto flex h-9 items-center gap-1 rounded-lg border border-border bg-background/95 px-1 shadow-md backdrop-blur">
-      <span className="hidden px-1 text-xs font-medium text-foreground sm:inline">Fleet Ops</span>
+      <span className="hidden px-1 text-xs font-medium text-foreground sm:inline">SkyNet</span>
       <Badge
         variant="outline"
         className={cn(
@@ -120,7 +120,7 @@ export function SimStatusBar({ logOpen, onToggleLog }: SimStatusBarProps) {
         </PopoverContent>
       </Popover>
       <span className="px-1 font-mono text-xs tabular-nums text-muted-foreground">
-        {formatSimTimeSeconds(view.timestampMs)}
+        {formatSimClock(view.epochMs, view.timestampMs)}
         {view.timeScale !== 1 ? <span className="ml-1 text-[10px]">{view.timeScale}×</span> : null}
       </span>
       <span className="hidden font-mono text-[10px] text-muted-foreground md:inline">
