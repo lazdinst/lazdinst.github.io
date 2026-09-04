@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { latLngBounds, type Map as LeafletMap } from "leaflet";
-import { MapContainer, TileLayer } from "react-leaflet";
+import { AttributionControl, MapContainer, TileLayer } from "react-leaflet";
 import { useSelector } from "react-redux";
-import { X } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import "./fleetMap.css";
-import { Button } from "@/components/ui/button";
-import { findFleetScenario, formatDuration } from "@/fleet";
+import { findFleetScenario, fleetRuntime } from "@/fleet";
 import type { RootState } from "@/redux/store";
 import { cn } from "@/lib/utils";
-import { STATUS_LABEL, STATUS_TONE, TONE_TEXT_CLASS } from "../../components";
 import { usePlannerDraft } from "../../context/usePlannerDraft";
-import { useAssetMission, useFleetArea, useFleetSnapshot, useSelectedAsset } from "../../hooks";
+import { useZoneEditor } from "../../context/useZoneEditor";
+import { useFleetArea, useFleetSnapshot, useSelectedAsset } from "../../hooks";
+import { useDevicePrefs } from "../../shell/useDevicePrefs";
+import { useShellUi } from "../../shell/useShellUi";
 import {
   AssetMarkers,
   CoverageLayer,
@@ -20,19 +20,42 @@ import {
   PlannerDraftLayer,
   SitesLayer,
   TerrainLayer,
-  ZoneLayer,
 } from "./layers";
+import { ZoneDraftLayer, ZoneFocus, ZoneLayer } from "./zoneLayers";
 import { MapHud, type MapLayers } from "./MapHud";
+import { EngagementAreaLayer, HostileMarkers, WeaponRangeLayer } from "./hostileLayers";
 
-// Esri's gray canvas basemaps are free to use with attribution and come in a
-// light and a dark style, which the theme toggle needs.
-const TILES = {
-  light: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-  dark: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-};
-const ATTRIBUTION =
-  'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-const TILE_MAX_NATIVE_ZOOM = 16;
+interface Basemap {
+  light: string;
+  dark: string;
+  attribution: string;
+  subdomains: string;
+  maxNativeZoom: number;
+}
+
+const CARTO_KEY = (import.meta.env.VITE_CARTO_API_KEY as string | undefined)?.trim();
+
+/**
+ * CARTO Dark Matter and Positron when a key is configured (VITE_CARTO_API_KEY);
+ * otherwise Esri's gray canvas tiles, which are free with attribution.
+ */
+const BASEMAP: Basemap = CARTO_KEY
+  ? {
+      light: `https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`,
+      dark: `https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxNativeZoom: 20,
+    }
+  : {
+      light: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+      dark: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+      attribution:
+        'Tiles &copy; <a href="https://www.esri.com/">Esri</a> &mdash; Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      subdomains: "",
+      maxNativeZoom: 16,
+    };
 const DEFAULT_ZOOM = 12;
 
 export function FleetMap() {
@@ -41,6 +64,11 @@ export function FleetMap() {
   const selected = useSelectedAsset();
   const mode = useSelector((state: RootState) => state.theme.mode);
   const { draft, setPickMode, setPickedTarget } = usePlannerDraft();
+  const zoneEditor = useZoneEditor();
+  const drawing = zoneEditor.mode === "draw";
+  const editing = zoneEditor.mode === "edit";
+  const { favorites } = useDevicePrefs();
+  const { follow, setFollow, focusRequest, openContextMenu, selectHostile, selectedHostileId } = useShellUi();
   const mapRef = useRef<LeafletMap | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [layers, setLayers] = useState<MapLayers>({
@@ -49,8 +77,8 @@ export function FleetMap() {
     coverage: true,
     labels: false,
     paths: true,
+    hostiles: true,
   });
-  const [follow, setFollow] = useState(false);
   const scenario = findFleetScenario(snapshot.scenarioId);
 
   // Leaflet caches its container size; the resizable panes change it.
@@ -65,13 +93,13 @@ export function FleetMap() {
   }, []);
 
   useEffect(() => {
-    if (!draft.pickMode) return;
+    if (!draft.pickMode || drawing) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setPickMode(false);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [draft.pickMode, setPickMode]);
+  }, [draft.pickMode, drawing, setPickMode]);
 
   const fitFleet = useCallback(() => {
     const map = mapRef.current;
@@ -81,12 +109,12 @@ export function FleetMap() {
       latLngBounds(snapshot.assets.map((asset) => [asset.position.lat, asset.position.lng])),
       { padding: [40, 40], animate: true }
     );
-  }, [snapshot.assets]);
+  }, [snapshot.assets, setFollow]);
 
   const resetView = useCallback(() => {
     setFollow(false);
     mapRef.current?.setView([area.center.lat, area.center.lng], DEFAULT_ZOOM, { animate: true });
-  }, [area.center]);
+  }, [area.center, setFollow]);
 
   return (
     // `isolate` keeps Leaflet's pane z-indexes (400–1000) inside the map so
@@ -99,75 +127,93 @@ export function FleetMap() {
         minZoom={10}
         maxZoom={17}
         zoomControl={false}
-        attributionControl
-        className={cn("fl-map h-full w-full", draft.pickMode && "fl-pick")}
+        attributionControl={false}
+        className={cn("fl-map h-full w-full", draft.pickMode && "fl-pick", drawing && "fl-draw")}
       >
+        <AttributionControl position="bottomleft" prefix={false} />
         <TileLayer
-          url={mode === "dark" ? TILES.dark : TILES.light}
-          attribution={ATTRIBUTION}
-          maxNativeZoom={TILE_MAX_NATIVE_ZOOM}
+          url={mode === "dark" ? BASEMAP.dark : BASEMAP.light}
+          attribution={BASEMAP.attribution}
+          subdomains={BASEMAP.subdomains}
+          maxNativeZoom={BASEMAP.maxNativeZoom}
           maxZoom={17}
         />
         {layers.terrain ? <TerrainLayer area={area} /> : null}
-        {layers.zones ? <ZoneLayer area={area} /> : null}
+        {layers.zones || editing ? (
+          <ZoneLayer
+            zones={area.zones}
+            selectedZoneId={zoneEditor.selectedZoneId}
+            editingZoneId={zoneEditor.editingZoneId}
+            drawing={drawing}
+            onSelect={zoneEditor.selectZone}
+            onContextMenu={(zone, latlng, clientX, clientY) =>
+              openContextMenu({ clientX, clientY, latlng, assetId: null, zoneId: zone.id })
+            }
+          />
+        ) : null}
+        {drawing ? (
+          <ZoneDraftLayer points={zoneEditor.draftPoints} type={zoneEditor.draftType} onCloseRing={() => zoneEditor.finishDraw()} />
+        ) : null}
+        <ZoneFocus request={zoneEditor.focusRequest} zones={area.zones} />
         {layers.coverage ? <CoverageLayer area={area} scenario={scenario} /> : null}
         <SitesLayer area={area} labels={layers.labels} />
         {layers.paths ? <PathLayer snapshot={snapshot} /> : null}
         <PlannerDraftLayer draft={draft} area={area} />
-        <AssetMarkers assets={snapshot.assets} selectedId={snapshot.selectedAssetId} labels={layers.labels} />
+        {layers.hostiles ? (
+          <>
+            <EngagementAreaLayer areas={fleetRuntime.getEngagementAreas()} />
+            <WeaponRangeLayer assets={snapshot.assets} />
+            <HostileMarkers
+              hostiles={snapshot.hostiles}
+              selectedId={selectedHostileId}
+              labels={layers.labels}
+              onSelect={(hostile) => selectHostile(hostile.id)}
+              onContextMenu={(hostile, clientX, clientY) =>
+                openContextMenu({ clientX, clientY, latlng: hostile.position, assetId: null, hostileId: hostile.id })
+              }
+            />
+          </>
+        ) : null}
+        <AssetMarkers
+          assets={snapshot.assets}
+          selectedId={snapshot.selectedAssetId}
+          labels={layers.labels}
+          favorites={favorites}
+          onContextMenu={(asset, clientX, clientY) =>
+            openContextMenu({ clientX, clientY, latlng: asset.position, assetId: asset.id })
+          }
+        />
         <MapInteractions
-          pickMode={draft.pickMode}
+          pickMode={draft.pickMode && !drawing}
           onPick={setPickedTarget}
+          drawing={drawing}
+          onDrawPoint={zoneEditor.addDraftPoint}
+          onDrawFinish={() => zoneEditor.finishDraw()}
           follow={follow}
           followTarget={selected?.position ?? null}
           onUserPan={() => setFollow(false)}
+          focusTarget={
+            focusRequest
+              ? (focusRequest.point ?? snapshot.assets.find((a) => a.id === focusRequest.assetId)?.position ?? null)
+              : null
+          }
+          focusNonce={focusRequest?.nonce ?? 0}
+          onContextMenu={(latlng, clientX, clientY) => openContextMenu({ clientX, clientY, latlng, assetId: null })}
         />
       </MapContainer>
 
-      <div className="pointer-events-none absolute inset-x-0 top-2 z-[1001] flex flex-col items-center gap-1 px-12">
-        <SelectedOverlay />
-        {draft.pickMode ? (
-          <div className="pointer-events-auto flex items-center gap-1 rounded-md border border-chart-1/40 bg-background/90 px-2 py-0.5 font-mono text-xs text-chart-1 shadow-sm">
-            <span className="hud-live">PICK TARGET</span>
-            <span className="text-muted-foreground">· click the map · Esc cancels</span>
-            <Button variant="ghost" size="icon-xs" aria-label="Cancel pick" onClick={() => setPickMode(false)}>
-              <X />
-            </Button>
-          </div>
-        ) : null}
-      </div>
-      <div className="pointer-events-none absolute bottom-5 left-2 z-[1001]">
+      <div className="pointer-events-none absolute right-3 bottom-8 z-[1001]">
         <MapHud
           mapRef={mapRef}
           layers={layers}
           onToggleLayer={(layer) => setLayers((current) => ({ ...current, [layer]: !current[layer] }))}
           follow={follow}
           canFollow={selected !== null}
-          onToggleFollow={() => setFollow((current) => !current)}
+          onToggleFollow={() => setFollow(!follow)}
           onFitFleet={fitFleet}
           onResetView={resetView}
         />
       </div>
-    </div>
-  );
-}
-
-function SelectedOverlay() {
-  const asset = useSelectedAsset();
-  const mission = useAssetMission(asset);
-  if (!asset) return null;
-  const tone = STATUS_TONE[asset.status];
-  return (
-    <div className="pointer-events-auto flex max-w-full items-center gap-2 rounded-md border border-border bg-background/90 px-2 py-0.5 font-mono text-xs shadow-sm">
-      <span className="text-foreground">{asset.callsign}</span>
-      <span className={TONE_TEXT_CLASS[tone]}>{STATUS_LABEL[asset.status]}</span>
-      <span className="text-muted-foreground tabular-nums">{asset.speedMps.toFixed(1)} m/s</span>
-      <span className="text-muted-foreground tabular-nums">{asset.energyPct.toFixed(0)}%</span>
-      {mission ? (
-        <span className="hidden text-muted-foreground tabular-nums sm:inline">
-          {(mission.progress * 100).toFixed(0)}% · eta {formatDuration(mission.etaMs)}
-        </span>
-      ) : null}
     </div>
   );
 }

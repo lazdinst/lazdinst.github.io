@@ -48,24 +48,6 @@ export const TerrainLayer = memo(function TerrainLayer({ area }: { area: Operati
   );
 });
 
-export const ZoneLayer = memo(function ZoneLayer({ area }: { area: OperatingArea }) {
-  return (
-    <>
-      {area.zones.map((zone) => (
-        <Polygon
-          key={zone.id}
-          positions={toTuples(zone.polygon)}
-          pathOptions={{ className: `fl-zone fl-zone-${zone.type}`, interactive: true }}
-        >
-          <Tooltip sticky className="fl-tooltip" opacity={1}>
-            {zone.name} · {zone.type.replace(/_/g, " ")}
-          </Tooltip>
-        </Polygon>
-      ))}
-    </>
-  );
-});
-
 export const CoverageLayer = memo(function CoverageLayer({ area, scenario }: { area: OperatingArea; scenario: FleetScenario }) {
   return (
     <>
@@ -262,28 +244,54 @@ export function AssetMarkers({
   assets,
   selectedId,
   labels,
+  favorites,
+  onContextMenu,
 }: {
   assets: Asset[];
   selectedId: string | null;
   labels: boolean;
+  favorites: string[];
+  onContextMenu: (asset: Asset, clientX: number, clientY: number) => void;
 }) {
   return (
     <>
       {assets.map((asset) => (
-        <AssetMarker key={asset.id} asset={asset} selected={asset.id === selectedId} labels={labels} />
+        <AssetMarker
+          key={asset.id}
+          asset={asset}
+          selected={asset.id === selectedId}
+          labels={labels}
+          favorite={favorites.includes(asset.id)}
+          onContextMenu={onContextMenu}
+        />
       ))}
     </>
   );
 }
 
-function AssetMarker({ asset, selected, labels }: { asset: Asset; selected: boolean; labels: boolean }) {
+function AssetMarker({
+  asset,
+  selected,
+  labels,
+  favorite,
+  onContextMenu,
+}: {
+  asset: Asset;
+  selected: boolean;
+  labels: boolean;
+  favorite: boolean;
+  onContextMenu: (asset: Asset, clientX: number, clientY: number) => void;
+}) {
   const ref = useRef<LeafletMarker | null>(null);
-  const tone = STATUS_TONE[asset.status];
+  const lostLink = asset.status === "lost_link";
+  // A lost-link asset is still friendly: keep its body neutral (red reads as
+  // hostile on a map) and flag the condition with a pulsing ring instead.
+  const tone = lostLink ? "neutral" : STATUS_TONE[asset.status];
   const live =
     asset.status === "en_route" || asset.status === "patrolling" || asset.status === "returning";
   const icon = useMemo(
-    () => assetIcon(asset.kind, asset.domain, tone, selected, live),
-    [asset.kind, asset.domain, tone, selected, live]
+    () => assetIcon(asset.kind, asset.domain, tone, selected, live, favorite, lostLink),
+    [asset.kind, asset.domain, tone, selected, live, favorite, lostLink]
   );
 
   useEffect(() => {
@@ -299,10 +307,17 @@ function AssetMarker({ asset, selected, labels }: { asset: Asset; selected: bool
       ref={ref}
       position={toTuple(asset.position)}
       icon={icon}
-      zIndexOffset={selected ? 1000 : live ? 100 : 0}
+      zIndexOffset={selected ? 1000 : live || lostLink ? 100 : 0}
       keyboard
       alt={asset.callsign}
-      eventHandlers={{ click: () => fleetRuntime.selectAsset(asset.id) }}
+      bubblingMouseEvents={false}
+      eventHandlers={{
+        click: () => fleetRuntime.selectAsset(asset.id),
+        contextmenu: (event) => {
+          event.originalEvent.preventDefault();
+          onContextMenu(asset, event.originalEvent.clientX, event.originalEvent.clientY);
+        },
+      }}
     >
       <Tooltip
         key={showLabel ? "p" : "h"}
@@ -321,20 +336,69 @@ function AssetMarker({ asset, selected, labels }: { asset: Asset; selected: bool
 interface MapInteractionsProps {
   pickMode: boolean;
   onPick: (point: LatLng) => void;
+  /** Zone drawing: clicks place vertices and a double-click closes the ring. */
+  drawing: boolean;
+  onDrawPoint: (point: LatLng) => void;
+  onDrawFinish: () => void;
   follow: boolean;
   followTarget: LatLng | null;
   onUserPan: () => void;
+  /** Fly to this point whenever `focusNonce` changes. */
+  focusTarget: LatLng | null;
+  focusNonce: number;
+  onContextMenu: (latlng: LatLng, clientX: number, clientY: number) => void;
 }
 
-/** Map click for target picking and follow-selected panning. */
-export function MapInteractions({ pickMode, onPick, follow, followTarget, onUserPan }: MapInteractionsProps) {
+/** Map click for target picking, follow-selected panning, focus requests, and right-click. */
+export function MapInteractions({
+  pickMode,
+  onPick,
+  drawing,
+  onDrawPoint,
+  onDrawFinish,
+  follow,
+  followTarget,
+  onUserPan,
+  focusTarget,
+  focusNonce,
+  onContextMenu,
+}: MapInteractionsProps) {
   const map = useMap();
   useMapEvents({
     click: (event) => {
-      if (pickMode) onPick({ lat: event.latlng.lat, lng: event.latlng.lng });
+      const point = { lat: event.latlng.lat, lng: event.latlng.lng };
+      if (drawing) {
+        onDrawPoint(point);
+      } else if (pickMode) {
+        onPick(point);
+      }
+    },
+    dblclick: (event) => {
+      if (!drawing) return;
+      event.originalEvent.preventDefault();
+      onDrawFinish();
     },
     dragstart: () => onUserPan(),
+    contextmenu: (event) => {
+      event.originalEvent.preventDefault();
+      onContextMenu({ lat: event.latlng.lat, lng: event.latlng.lng }, event.originalEvent.clientX, event.originalEvent.clientY);
+    },
   });
+  // Double-click closes the ring while drawing, so it must not zoom.
+  useEffect(() => {
+    if (drawing) {
+      map.doubleClickZoom.disable();
+    } else {
+      map.doubleClickZoom.enable();
+    }
+  }, [map, drawing]);
+  const focusRef = useRef(0);
+  useEffect(() => {
+    if (focusNonce === focusRef.current || !focusTarget) return;
+    focusRef.current = focusNonce;
+    map.flyTo([focusTarget.lat, focusTarget.lng], Math.max(map.getZoom(), 13), { duration: 0.6 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusNonce]);
   useEffect(() => {
     if (!follow || !followTarget) return;
     const center = map.getCenter();

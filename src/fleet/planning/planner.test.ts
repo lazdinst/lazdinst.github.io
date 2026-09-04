@@ -35,6 +35,8 @@ function assetAt(kind: Asset["kind"], position: Asset["position"], energyPct = 9
     homeDepotId: seed.homeDepotId,
     rssiHistory: [],
     energyHistory: [],
+    weapon: null,
+    armorPct: 100,
   };
 }
 
@@ -154,5 +156,58 @@ describe("FleetPlanner", () => {
     });
     const elapsed = performance.now() - started;
     expect(elapsed).toBeLessThan(6 * 250);
+  });
+});
+
+describe("zone editing", () => {
+  // A box around RALLY-B, big enough to swallow the target cell.
+  const rallyB = wp("rally-b");
+  const box = (center: { lat: number; lng: number }, halfDeg: number) => [
+    { lat: center.lat + halfDeg, lng: center.lng - halfDeg },
+    { lat: center.lat + halfDeg, lng: center.lng + halfDeg },
+    { lat: center.lat - halfDeg, lng: center.lng + halfDeg },
+    { lat: center.lat - halfDeg, lng: center.lng - halfDeg },
+  ];
+
+  it("rasterizes new zones and forgets removed ones", () => {
+    const local = new FleetPlanner(OPERATING_AREA);
+    expect(zonesAt(local.getGrid(), rallyB)).toEqual([]);
+    local.setZones([...OPERATING_AREA.zones, { id: "x", name: "X", type: "exclusion", polygon: box(rallyB, 0.004) }]);
+    expect(zonesAt(local.getGrid(), rallyB)).toContain("exclusion");
+    local.setZones(OPERATING_AREA.zones);
+    expect(zonesAt(local.getGrid(), rallyB)).toEqual([]);
+  });
+
+  it("blocks every kind out of an exclusion zone", () => {
+    const local = new FleetPlanner(OPERATING_AREA);
+    local.setZones([...OPERATING_AREA.zones, { id: "x", name: "X", type: "exclusion", polygon: box(rallyB, 0.004) }]);
+    (["uav_quad", "ugv_rover", "legged"] as const).forEach((kind) => {
+      const map = local.getCostMap(kindProfile(kind), nominal);
+      expect(local.isPathPassable(kindProfile(kind), nominal, [rallyB, rallyB])).toBe(false);
+      // Pathing snaps the goal to the nearest passable cell outside the box.
+      const coas = local.generateCoas(assetAt(kind, depot), { type: "transit", target: rallyB, targetLabel: "RALLY-B" }, nominal);
+      coas.filter((coa) => coa.feasible).forEach((coa) => {
+        const inside = coa.path.filter((point) => pointInPolygon(point, box(rallyB, 0.004)));
+        // Only the pinned endpoint may sit inside; every routed cell stays out.
+        expect(inside.length).toBeLessThanOrEqual(1);
+        expect(map.passable.length).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  it("routes around an exclusion zone dropped across a straight line", () => {
+    const local = new FleetPlanner(OPERATING_AREA);
+    const from = depot;
+    const to = wp("farm-east");
+    const mid = { lat: (from.lat + to.lat) / 2, lng: (from.lng + to.lng) / 2 };
+    const before = local.generateCoas(assetAt("uav_quad", from), { type: "transit", target: to, targetLabel: "FARM-EAST" }, nominal);
+    const direct = before.find((coa) => coa.variant === "direct")!;
+    expect(direct.feasible).toBe(true);
+    local.setZones([...OPERATING_AREA.zones, { id: "x", name: "X", type: "exclusion", polygon: box(mid, 0.003) }]);
+    const after = local.generateCoas(assetAt("uav_quad", from), { type: "transit", target: to, targetLabel: "FARM-EAST" }, nominal);
+    const detour = after.find((coa) => coa.variant === "direct")!;
+    expect(detour.feasible).toBe(true);
+    expect(detour.path.some((point) => pointInPolygon(point, box(mid, 0.003)))).toBe(false);
+    expect(detour.distanceM).toBeGreaterThan(direct.distanceM);
   });
 });

@@ -10,6 +10,7 @@ const ORDER: AssetStatus[] = [
   "en_route",
   "patrolling",
   "returning",
+  "engaging",
   "idle",
   "charging",
   "maintenance",
@@ -23,22 +24,31 @@ export function FleetTelemetry() {
     <PanelSection title="Fleet telemetry" info={TELEMETRY_HELP}>
       <div className="flex flex-col gap-2">
         <dl className="grid grid-cols-4 gap-x-2 gap-y-1">
-          {ORDER.map((status) => (
-            <div key={status} className="flex flex-col gap-0.5">
-              <dt className={cn("truncate text-[9px] tracking-[0.12em] uppercase", TONE_TEXT_CLASS[STATUS_TONE[status]])}>
-                {STATUS_LABEL[status]}
-              </dt>
-              <dd className="font-mono text-sm leading-none tabular-nums text-foreground">
-                {stats.byStatus[status]}
-              </dd>
-            </div>
-          ))}
+          {ORDER.map((status) => {
+            const count = stats.byStatus[status];
+            // Labels stay muted; only a non-zero alert count earns color.
+            const alert = STATUS_TONE[status] === "alert" && count > 0;
+            return (
+              <div key={status} className="flex flex-col gap-0.5">
+                <dt className="truncate text-[9px] tracking-[0.12em] text-muted-foreground uppercase">
+                  {STATUS_LABEL[status]}
+                </dt>
+                <dd className={cn("font-mono text-sm leading-none tabular-nums", alert ? TONE_TEXT_CLASS.alert : "text-foreground")}>
+                  {count}
+                </dd>
+              </div>
+            );
+          })}
         </dl>
         <TrendRow label="Mean link" value={`${(stats.meanLinkQuality * 100).toFixed(0)}%`} values={stats.linkHistory} />
         <TrendRow label="Mean energy" value={`${stats.meanEnergyPct.toFixed(0)}%`} values={stats.energyHistory} stroke="var(--chart-2)" />
         <div className="flex items-center justify-between text-[10px] text-muted-foreground">
           <span>{stats.activeMissions} missions · {stats.maintenanceDue} due for service</span>
           <span className={cn(stats.faults > 0 && "text-destructive")}>{stats.faults} faults</span>
+        </div>
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+          <span className={cn(stats.hostilesActive > 0 && "text-destructive")}>{stats.hostilesActive} hostiles active</span>
+          <span>{stats.hostilesEliminated} eliminated</span>
         </div>
       </div>
     </PanelSection>

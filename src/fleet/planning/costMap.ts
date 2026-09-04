@@ -36,6 +36,9 @@ export function buildCostMap(
     const mask = grid.zoneMask[index];
     let ok = terrainCost !== null;
     let riskMultiplier = 1;
+    // Exclusion zones are operator-drawn keep-outs and bind every kind,
+    // independent of the profile table.
+    if ((mask & zoneBit("exclusion")) !== 0) ok = false;
     ZONE_TYPES.forEach((type) => {
       if ((mask & zoneBit(type)) === 0) return;
       const zoneCost = profile.zoneCost[type];

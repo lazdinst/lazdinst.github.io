@@ -9,12 +9,20 @@ export type TerrainClass =
   | "steep"
   | "wetland";
 
+/**
+ * Zone semantics come from each kind's `zoneCost` table, except `exclusion`,
+ * which the cost map blocks for every kind regardless of profile.
+ */
 export type ZoneType =
   | "no_fly"
   | "restricted"
   | "hazard"
   | "shallow_water"
-  | "low_comms";
+  | "low_comms"
+  | "exclusion";
+
+/** Editable fields of a zone; id is assigned by the runtime. */
+export type ZoneInput = Pick<Zone, "name" | "type" | "polygon">;
 
 export interface Zone {
   id: string;

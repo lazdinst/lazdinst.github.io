@@ -11,6 +11,7 @@ import {
   type FleetSnapshot,
   type FleetView,
   type Mission,
+  type OperatingArea,
 } from "@/fleet";
 import type { SimulationEvent } from "@/simulation";
 
@@ -42,4 +43,7 @@ export function useAssetMission(asset: Asset | null): Mission | null {
   }, [snapshot.missions, asset?.missionId]);
 }
 
-export const useFleetArea = () => fleetRuntime.getArea();
+/** The operating area; a new object whenever zones change, so edits re-render. */
+export function useFleetArea(): OperatingArea {
+  return useSyncExternalStore(subscribeFleetSnapshot, fleetRuntime.getArea, fleetRuntime.getArea);
+}

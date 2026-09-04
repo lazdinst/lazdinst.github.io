@@ -10,6 +10,7 @@ export const STATUS_LABEL: Record<AssetStatus, string> = {
   maintenance: "MAINT",
   lost_link: "LOST LINK",
   fault: "FAULT",
+  engaging: "ENGAGING",
 };
 
 export type StatusTone = "neutral" | "ok" | "info" | "warn" | "alert";
@@ -23,6 +24,7 @@ export const STATUS_TONE: Record<AssetStatus, StatusTone> = {
   maintenance: "warn",
   lost_link: "alert",
   fault: "alert",
+  engaging: "alert",
 };
 
 /** Badge classes matching the workcell's outline status badge. */

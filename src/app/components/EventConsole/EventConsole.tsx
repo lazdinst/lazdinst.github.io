@@ -1,4 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type {
   EventSeverity,
@@ -97,39 +104,21 @@ export function EventConsole({
         <h2 className="text-[10px] font-medium tracking-wide text-zinc-500 uppercase">
           output
         </h2>
-        <div className="flex items-center gap-2">
-          <label className="sr-only" htmlFor={`${idPrefix}-severity-filter`}>
-            Filter events by severity
-          </label>
-          <select
+        <div className="flex items-center gap-1">
+          <ConsoleSelect
             id={`${idPrefix}-severity-filter`}
-            className="h-4 border-0 bg-transparent font-mono text-[10px] text-zinc-500 outline-none"
+            label="Filter events by severity"
             value={severityFilter}
-            onChange={(event) =>
-              setSeverityFilter(event.target.value as SeverityFilter)
-            }
-          >
-            {SEVERITY_FILTERS.map((filter) => (
-              <option key={filter} value={filter}>
-                {filter}
-              </option>
-            ))}
-          </select>
-          <label className="sr-only" htmlFor={`${idPrefix}-source-filter`}>
-            Filter events by source
-          </label>
-          <select
+            options={SEVERITY_FILTERS}
+            onChange={(next) => setSeverityFilter(next as SeverityFilter)}
+          />
+          <ConsoleSelect
             id={`${idPrefix}-source-filter`}
-            className="h-4 max-w-28 truncate border-0 bg-transparent font-mono text-[10px] text-zinc-500 outline-none"
+            label="Filter events by source"
             value={sourceFilter}
-            onChange={(event) => setSourceFilter(event.target.value)}
-          >
-            {sources.map((source) => (
-              <option key={source} value={source}>
-                {source}
-              </option>
-            ))}
-          </select>
+            options={sources}
+            onChange={setSourceFilter}
+          />
           <span
             className={cn(
               "text-[10px]",
@@ -187,5 +176,44 @@ export function EventConsole({
         )}
       </div>
     </div>
+  );
+}
+
+/** Borderless zinc select that sits in the console header. */
+function ConsoleSelect({
+  id,
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  options: readonly string[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Select<string | null>
+      value={value}
+      onValueChange={(next) => {
+        if (next !== null) onChange(next);
+      }}
+    >
+      <SelectTrigger
+        id={id}
+        aria-label={label}
+        className="h-4 max-w-28 rounded-sm border-0 bg-transparent px-1 font-mono text-[10px] text-zinc-500 hover:text-zinc-300 dark:bg-transparent dark:hover:bg-transparent [&_svg]:size-2.5 [&_svg]:text-zinc-600"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="end" className="font-mono">
+        {options.map((option) => (
+          <SelectItem key={option} value={option}>
+            {option}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

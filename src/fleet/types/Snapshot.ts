@@ -1,5 +1,6 @@
 import type { SimulationStatus, PlaybackMode } from "@/simulation";
 import type { Asset, AssetStatus, FleetFaultId } from "./Asset";
+import type { Hostile } from "./Combat";
 import type { CourseOfAction, Mission, Objective } from "./Mission";
 
 export interface FleetStats {
@@ -10,6 +11,8 @@ export interface FleetStats {
   meanLinkQuality: number;
   meanEnergyPct: number;
   maintenanceDue: number;
+  hostilesActive: number;
+  hostilesEliminated: number;
   linkHistory: number[];
   energyHistory: number[];
 }
@@ -20,6 +23,8 @@ export interface PlannerState {
   candidates: CourseOfAction[];
   selectedCoaId: string | null;
   generatedAtMs: number | null;
+  /** Why the last dispatch was refused, cleared on the next plan or dispatch. */
+  refusal: string | null;
 }
 
 export interface FleetSnapshot {
@@ -33,6 +38,7 @@ export interface FleetSnapshot {
   planner: PlannerState;
   stats: FleetStats;
   selectedAssetId: string | null;
+  hostiles: Hostile[];
 }
 
 export interface FleetView {
@@ -47,6 +53,8 @@ export interface FleetView {
   activeCount: number;
   faultCount: number;
   lostLinkCount: number;
+  /** Active or suppressed hostiles. */
+  hostileCount: number;
   selectedAssetId: string | null;
 }
 

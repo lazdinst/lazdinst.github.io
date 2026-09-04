@@ -64,6 +64,25 @@ function glyphPath(kind: AssetKind) {
       );
     case "usv":
       return <path d="M2 9 L14 9 L12 13 L4 13 Z M7 3 L9 3 L9 9 L7 9 Z" />;
+    case "ugv_armored":
+      return (
+        <>
+          <rect x="1.5" y="8" width="13" height="5.5" rx="2.5" />
+          <rect x="5" y="4.5" width="6" height="4" rx="1" />
+          <rect x="10.5" y="5.5" width="5" height="1.6" rx="0.5" />
+        </>
+      );
+    case "uav_armed":
+      return (
+        <>
+          <circle cx="4" cy="4" r="2" />
+          <circle cx="12" cy="4" r="2" />
+          <circle cx="4" cy="12" r="2" />
+          <circle cx="12" cy="12" r="2" />
+          <rect x="6.5" y="6.5" width="3" height="3" rx="0.6" />
+          <rect x="7.4" y="9.5" width="1.2" height="4.5" rx="0.4" />
+        </>
+      );
     default:
       return <circle cx="8" cy="8" r="4" />;
   }

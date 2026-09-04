@@ -14,6 +14,8 @@ import {
   type Objective,
   type ObjectiveType,
   type OperatingArea,
+  buildEngageObjective,
+  type Hostile,
 } from "@/fleet";
 import { cn } from "@/lib/utils";
 import { FleetSelect, Stat } from "../../components";
@@ -26,11 +28,17 @@ const OBJECTIVES: { id: ObjectiveType; label: string }[] = [
   { id: "patrol", label: "Patrol" },
   { id: "survey", label: "Survey" },
   { id: "rtb", label: "RTB" },
+  { id: "engage", label: "Engage" },
 ];
 
 const SWATHS = [100, 150, 250];
 
-function buildObjective(draft: PlannerDraft, area: OperatingArea, asset: Asset | null): Objective | null {
+function buildObjective(
+  draft: PlannerDraft,
+  area: OperatingArea,
+  asset: Asset | null,
+  hostiles: Hostile[]
+): Objective | null {
   switch (draft.objectiveType) {
     case "transit": {
       if (draft.pickedTarget) {
@@ -54,6 +62,12 @@ function buildObjective(draft: PlannerDraft, area: OperatingArea, asset: Asset |
         targetLabel: points.map((waypoint) => waypoint.label).join(" → "),
       };
     }
+    case "engage": {
+      if (!asset) return null;
+      const active = hostiles.filter((hostile) => hostile.status !== "eliminated");
+      const chosen = draft.engageHostileIds.length > 0 ? active.filter((hostile) => draft.engageHostileIds.includes(hostile.id)) : active;
+      return buildEngageObjective(asset.position, chosen);
+    }
     case "survey": {
       const surveyArea = area.surveyAreas.find((candidate) => candidate.id === draft.surveyAreaId);
       if (!surveyArea) return null;
@@ -69,10 +83,10 @@ export function MissionPlanner() {
   const area = useFleetArea();
   const asset = useSelectedAsset();
   const { draft, update, setPickMode } = usePlannerDraft();
-  const [refusal, setRefusal] = useState<string | null>(null);
   const [override, setOverride] = useState(false);
+  const refusal = snapshot.planner.refusal;
 
-  const objective = useMemo(() => buildObjective(draft, area, asset), [draft, area, asset]);
+  const objective = useMemo(() => buildObjective(draft, area, asset, snapshot.hostiles), [draft, area, asset, snapshot.hostiles]);
   const domainWaypoints = area.waypoints.filter((waypoint) => !asset || waypoint.domains.includes(asset.domain));
   const planner = snapshot.planner;
   const plannedAsset = snapshot.assets.find((candidate) => candidate.id === planner.assetId) ?? null;
@@ -80,13 +94,11 @@ export function MissionPlanner() {
 
   const generate = () => {
     if (!asset || !objective) return;
-    setRefusal(null);
     fleetRuntime.planMission(asset.id, objective);
   };
 
   const dispatch = () => {
     const result = fleetRuntime.dispatch(undefined, { override });
-    setRefusal(result.ok ? null : (result.reason ?? "Dispatch refused"));
     if (result.ok) setOverride(false);
   };
 
@@ -99,16 +111,15 @@ export function MissionPlanner() {
           </label>
           <FleetSelect
             id="planner-asset"
-            value={asset?.id ?? ""}
-            onChange={(event) => fleetRuntime.selectAsset(event.target.value || null)}
-          >
-            <option value="">Select…</option>
-            {snapshot.assets.map((candidate) => (
-              <option key={candidate.id} value={candidate.id}>
-                {candidate.callsign} · {candidate.status.replace(/_/g, " ")}
-              </option>
-            ))}
-          </FleetSelect>
+            value={asset?.id ?? null}
+            placeholder="Select a device…"
+            onValueChange={(next) => fleetRuntime.selectAsset(next)}
+            options={snapshot.assets.map((candidate) => ({
+              value: candidate.id,
+              label: candidate.callsign,
+              description: `${candidate.status.replace(/_/g, " ")} · ${candidate.energyPct.toFixed(0)}%`,
+            }))}
+          />
 
           <span className="text-[10px] tracking-[0.16em] text-muted-foreground uppercase">Objective</span>
           <div className="flex flex-wrap gap-0.5">
@@ -135,26 +146,27 @@ export function MissionPlanner() {
                 <FleetSelect
                   id="planner-target"
                   className="flex-1"
-                  value={draft.pickedTarget ? "__map" : (draft.waypointId ?? "")}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    if (value === "__map") {
+                  value={draft.pickedTarget ? "__map" : draft.waypointId}
+                  placeholder="Choose a target…"
+                  onValueChange={(next) => {
+                    if (next === "__map") {
                       setPickMode(true);
                     } else {
-                      update({ waypointId: value, pickedTarget: null, pickMode: false });
+                      update({ waypointId: next, pickedTarget: null, pickMode: false });
                     }
                   }}
-                >
-                  {draft.pickedTarget ? (
-                    <option value="__map">{formatLatLng(draft.pickedTarget)}</option>
-                  ) : null}
-                  {domainWaypoints.map((waypoint) => (
-                    <option key={waypoint.id} value={waypoint.id}>
-                      {waypoint.label}
-                    </option>
-                  ))}
-                  {!draft.pickedTarget ? <option value="__map">Pick on map…</option> : null}
-                </FleetSelect>
+                  options={[
+                    ...(draft.pickedTarget
+                      ? [{ value: "__map", label: formatLatLng(draft.pickedTarget), description: "Picked on map" }]
+                      : []),
+                    ...domainWaypoints.map((waypoint) => ({
+                      value: waypoint.id,
+                      label: waypoint.label,
+                      description: formatLatLng(waypoint.position),
+                    })),
+                    ...(!draft.pickedTarget ? [{ value: "__map", label: "Pick on map…" }] : []),
+                  ]}
+                />
                 <Button
                   variant={draft.pickMode ? "secondary" : "outline"}
                   size="icon-sm"
@@ -199,6 +211,51 @@ export function MissionPlanner() {
             </>
           ) : null}
 
+          {draft.objectiveType === "engage" ? (
+            <>
+              <span className="text-[10px] tracking-[0.16em] text-muted-foreground uppercase">Targets</span>
+              <div className="flex flex-col gap-1">
+                {asset && !asset.weapon ? (
+                  <p className="text-[10px] text-destructive">{asset.callsign} carries no weapon system. Pick an armed device.</p>
+                ) : null}
+                <div className="flex flex-wrap gap-0.5">
+                  <Button
+                    variant={draft.engageHostileIds.length === 0 ? "secondary" : "outline"}
+                    size="xs"
+                    aria-pressed={draft.engageHostileIds.length === 0}
+                    className="h-4 px-1 font-mono text-[10px]"
+                    onClick={() => update({ engageHostileIds: [] })}
+                  >
+                    All active
+                  </Button>
+                  {snapshot.hostiles
+                    .filter((hostile) => hostile.status !== "eliminated")
+                    .map((hostile) => {
+                      const active = draft.engageHostileIds.includes(hostile.id);
+                      return (
+                        <Button
+                          key={hostile.id}
+                          variant={active ? "secondary" : "outline"}
+                          size="xs"
+                          aria-pressed={active}
+                          className={cn("h-4 px-1 font-mono text-[10px]", hostile.threat === "high" && !active && "text-destructive")}
+                          onClick={() =>
+                            update({
+                              engageHostileIds: active
+                                ? draft.engageHostileIds.filter((id) => id !== hostile.id)
+                                : [...draft.engageHostileIds, hostile.id],
+                            })
+                          }
+                        >
+                          {hostile.callsign}
+                        </Button>
+                      );
+                    })}
+                </div>
+              </div>
+            </>
+          ) : null}
+
           {draft.objectiveType === "survey" ? (
             <>
               <label htmlFor="planner-survey" className="text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
@@ -208,29 +265,19 @@ export function MissionPlanner() {
                 <FleetSelect
                   id="planner-survey"
                   className="flex-1"
-                  value={draft.surveyAreaId ?? ""}
-                  onChange={(event) => update({ surveyAreaId: event.target.value })}
-                >
-                  {area.surveyAreas.map((surveyArea) => (
-                    <option key={surveyArea.id} value={surveyArea.id}>
-                      {surveyArea.label}
-                    </option>
-                  ))}
-                </FleetSelect>
-                <label className="sr-only" htmlFor="planner-swath">
-                  Swath width
-                </label>
+                  value={draft.surveyAreaId}
+                  placeholder="Survey area…"
+                  onValueChange={(next) => update({ surveyAreaId: next })}
+                  options={area.surveyAreas.map((surveyArea) => ({ value: surveyArea.id, label: surveyArea.label }))}
+                />
                 <FleetSelect
-                  id="planner-swath"
-                  value={draft.swathM}
-                  onChange={(event) => update({ swathM: Number(event.target.value) })}
-                >
-                  {SWATHS.map((swath) => (
-                    <option key={swath} value={swath}>
-                      {swath} m
-                    </option>
-                  ))}
-                </FleetSelect>
+                  aria-label="Swath width"
+                  value={String(draft.swathM)}
+                  className="w-16"
+                  align="end"
+                  onValueChange={(next) => update({ swathM: Number(next) })}
+                  options={SWATHS.map((swath) => ({ value: String(swath), label: `${swath} m` }))}
+                />
               </div>
             </>
           ) : null}

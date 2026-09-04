@@ -13,5 +13,6 @@ export {
   distanceToPolylineXY,
   distanceToSegmentXY,
   pointInPolygon,
+  polygonAreaM2,
   polygonCentroid,
 } from "./polygon";

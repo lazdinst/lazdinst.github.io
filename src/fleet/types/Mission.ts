@@ -1,6 +1,7 @@
+import type { Sitrep } from "./Combat";
 import type { LatLng } from "./geo";
 
-export type ObjectiveType = "transit" | "rtb" | "patrol" | "survey";
+export type ObjectiveType = "transit" | "rtb" | "patrol" | "survey" | "engage";
 
 export interface Objective {
   type: ObjectiveType;
@@ -12,6 +13,8 @@ export interface Objective {
   /** Survey polygon and swath width. */
   polygon?: LatLng[];
   swathM?: number;
+  /** Engage: hostile ids in engagement order; `waypoints` carries their positions at plan time. */
+  hostileIds?: string[];
 }
 
 export type CoaVariant = "direct" | "safe" | "efficient";
@@ -55,4 +58,6 @@ export interface Mission {
   loops: number;
   etaMs: number;
   failureReason: string | null;
+  /** Engage missions only: rolling situation report. */
+  sitrep: Sitrep | null;
 }

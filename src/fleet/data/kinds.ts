@@ -3,6 +3,7 @@ import type {
   AssetKind,
   SensorKind,
   TerrainClass,
+  WeaponSystem,
   ZoneType,
 } from "../types";
 
@@ -27,6 +28,8 @@ export interface KindProfile {
   sensorSuite: SensorKind[];
   terrainCost: Record<TerrainClass, number | null>;
   zoneCost: Record<ZoneType, number | null>;
+  /** Armed kinds carry a weapon system. */
+  weapon?: WeaponSystem;
 }
 
 const AIR_TERRAIN: Record<TerrainClass, number> = {
@@ -44,6 +47,7 @@ const AIR_ZONES: Record<ZoneType, number | null> = {
   hazard: 3,
   shallow_water: 1,
   low_comms: 1.5,
+  exclusion: null,
 };
 
 const GROUND_ZONES: Record<ZoneType, number | null> = {
@@ -52,6 +56,7 @@ const GROUND_ZONES: Record<ZoneType, number | null> = {
   hazard: 3,
   shallow_water: 1,
   low_comms: 1.5,
+  exclusion: null,
 };
 
 export const KIND_PROFILES: Record<AssetKind, KindProfile> = {
@@ -161,7 +166,61 @@ export const KIND_PROFILES: Record<AssetKind, KindProfile> = {
     serviceIntervalHours: 300,
     sensorSuite: ["gps", "imu", "sonar", "ais", "radio", "motor_temp"],
     terrainCost: { water: 1, road: null, open: null, urban: null, steep: null, wetland: null },
-    zoneCost: { no_fly: 1, restricted: null, hazard: 3, shallow_water: null, low_comms: 1.5 },
+    zoneCost: { no_fly: 1, restricted: null, hazard: 3, shallow_water: null, low_comms: 1.5, exclusion: null },
+  },
+  ugv_armored: {
+    kind: "ugv_armored",
+    domain: "ground",
+    label: "Armored combat UGV",
+    shortLabel: "armored",
+    cruiseMps: 3.5,
+    accelMps2: 0.9,
+    whPerKm: 220,
+    capacityWh: 9000,
+    idleWPerS: 0.04,
+    chargeRatePctPerS: 0.2,
+    altitudeM: 0,
+    minTurnRadiusM: 0,
+    serviceIntervalHours: 120,
+    sensorSuite: ["gps", "imu", "lidar", "radar", "camera_ir", "radio", "motor_temp"],
+    terrainCost: { water: null, road: 1, open: 1.4, urban: 1.5, steep: 2.5, wetland: null },
+    zoneCost: GROUND_ZONES,
+    weapon: {
+      name: "25 mm autocannon",
+      kind: "cannon",
+      rangeM: 1200,
+      roundsPerMin: 90,
+      hitProbability: 0.55,
+      damagePerHit: 0.34,
+      ammoCapacity: 120,
+    },
+  },
+  uav_armed: {
+    kind: "uav_armed",
+    domain: "air",
+    label: "Armed quadrotor",
+    shortLabel: "armed uav",
+    cruiseMps: 14,
+    accelMps2: 3,
+    whPerKm: 26,
+    capacityWh: 520,
+    idleWPerS: 0.1,
+    chargeRatePctPerS: 0.5,
+    altitudeM: 110,
+    minTurnRadiusM: 0,
+    serviceIntervalHours: 50,
+    sensorSuite: ["gps", "imu", "barometer", "camera_eo", "camera_ir", "radio", "motor_temp"],
+    terrainCost: AIR_TERRAIN,
+    zoneCost: AIR_ZONES,
+    weapon: {
+      name: "Guided munitions",
+      kind: "munition",
+      rangeM: 800,
+      roundsPerMin: 8,
+      hitProbability: 0.75,
+      damagePerHit: 0.5,
+      ammoCapacity: 6,
+    },
   },
 };
 

@@ -23,6 +23,7 @@ export type {
   TerrainClass,
   TerrainPatch,
   Zone,
+  ZoneInput,
   ZoneType,
 } from "./Area";
 export type {
@@ -41,3 +42,14 @@ export type {
   PlannerState,
   VectorField,
 } from "./Snapshot";
+export type {
+  EngagementArea,
+  Hostile,
+  HostileKind,
+  HostileStatus,
+  Sitrep,
+  ThreatLevel,
+  WeaponKind,
+  WeaponState,
+  WeaponSystem,
+} from "./Combat";
