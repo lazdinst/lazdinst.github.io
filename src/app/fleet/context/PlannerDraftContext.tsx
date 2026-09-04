@@ -8,6 +8,7 @@ const DEFAULT_DRAFT: PlannerDraft = {
   pickedTarget: null,
   patrolWaypointIds: ["rally-a", "farm-east"],
   surveyAreaId: "svy-farm",
+  engageHostileIds: [],
   swathM: 150,
   pickMode: false,
 };

@@ -1,4 +1,4 @@
-import type { OperatingArea } from "../types";
+import type { OperatingArea, Zone } from "../types";
 
 /**
  * A 15 km box on Monterey Bay around Moss Landing, CA. Sea to the west,
@@ -6,6 +6,65 @@ import type { OperatingArea } from "../types";
  * Fort Ord hills to the south. Terrain patches and zones are hand-drawn
  * approximations meant to line up with the basemap, not survey data.
  */
+/** Shipped zone set; the runtime restores these on "reset zones". */
+export const DEFAULT_ZONES: Zone[] = [
+  {
+    id: "nf-power",
+    name: "Moss Landing power station",
+    type: "no_fly",
+    polygon: [
+      { lat: 36.81, lng: -121.788 },
+      { lat: 36.81, lng: -121.772 },
+      { lat: 36.796, lng: -121.772 },
+      { lat: 36.796, lng: -121.788 },
+    ],
+  },
+  {
+    id: "rs-wildlife",
+    name: "Wildlife closure",
+    type: "restricted",
+    polygon: [
+      { lat: 36.822, lng: -121.762 },
+      { lat: 36.826, lng: -121.752 },
+      { lat: 36.816, lng: -121.748 },
+      { lat: 36.812, lng: -121.76 },
+    ],
+  },
+  {
+    id: "hz-range",
+    name: "Live-fire range",
+    type: "hazard",
+    polygon: [
+      { lat: 36.742, lng: -121.762 },
+      { lat: 36.742, lng: -121.735 },
+      { lat: 36.73, lng: -121.735 },
+      { lat: 36.73, lng: -121.762 },
+    ],
+  },
+  {
+    id: "sw-bar",
+    name: "Salinas river bar",
+    type: "shallow_water",
+    polygon: [
+      { lat: 36.765, lng: -121.8 },
+      { lat: 36.765, lng: -121.822 },
+      { lat: 36.74, lng: -121.828 },
+      { lat: 36.74, lng: -121.808 },
+    ],
+  },
+  {
+    id: "lc-nw",
+    name: "NW comms shadow",
+    type: "low_comms",
+    polygon: [
+      { lat: 36.853, lng: -121.858 },
+      { lat: 36.853, lng: -121.83 },
+      { lat: 36.825, lng: -121.83 },
+      { lat: 36.825, lng: -121.858 },
+    ],
+  },
+];
+
 export const OPERATING_AREA: OperatingArea = {
   id: "monterey-bay",
   name: "Monterey Bay range",
@@ -152,63 +211,7 @@ export const OPERATING_AREA: OperatingArea = {
       ],
     },
   ],
-  zones: [
-    {
-      id: "nf-power",
-      name: "Moss Landing power station",
-      type: "no_fly",
-      polygon: [
-        { lat: 36.81, lng: -121.788 },
-        { lat: 36.81, lng: -121.772 },
-        { lat: 36.796, lng: -121.772 },
-        { lat: 36.796, lng: -121.788 },
-      ],
-    },
-    {
-      id: "rs-wildlife",
-      name: "Wildlife closure",
-      type: "restricted",
-      polygon: [
-        { lat: 36.822, lng: -121.762 },
-        { lat: 36.826, lng: -121.752 },
-        { lat: 36.816, lng: -121.748 },
-        { lat: 36.812, lng: -121.76 },
-      ],
-    },
-    {
-      id: "hz-range",
-      name: "Live-fire range",
-      type: "hazard",
-      polygon: [
-        { lat: 36.742, lng: -121.762 },
-        { lat: 36.742, lng: -121.735 },
-        { lat: 36.73, lng: -121.735 },
-        { lat: 36.73, lng: -121.762 },
-      ],
-    },
-    {
-      id: "sw-bar",
-      name: "Salinas river bar",
-      type: "shallow_water",
-      polygon: [
-        { lat: 36.765, lng: -121.8 },
-        { lat: 36.765, lng: -121.822 },
-        { lat: 36.74, lng: -121.828 },
-        { lat: 36.74, lng: -121.808 },
-      ],
-    },
-    {
-      id: "lc-nw",
-      name: "NW comms shadow",
-      type: "low_comms",
-      polygon: [
-        { lat: 36.853, lng: -121.858 },
-        { lat: 36.853, lng: -121.83 },
-        { lat: 36.825, lng: -121.83 },
-        { lat: 36.825, lng: -121.858 },
-      ],
-    },
-  ],
+  zones: DEFAULT_ZONES,
   relays: [
     { id: "rly-depot", name: "Depot mast", position: { lat: 36.782, lng: -121.735 }, rangeM: 5500 },
     { id: "rly-dock", name: "Dock mast", position: { lat: 36.806, lng: -121.786 }, rangeM: 5000 },

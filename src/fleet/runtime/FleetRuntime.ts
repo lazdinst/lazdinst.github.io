@@ -18,18 +18,28 @@ import type {
   FleetSnapshot,
   FleetStats,
   FleetView,
+  Hostile,
   LatLng,
   Mission,
   Objective,
   OperatingArea,
   PlannerState,
   WorkOrder,
+  Zone,
+  ZoneInput,
 } from "../types";
 import { ASSET_SEEDS, type AssetSeed } from "../data/assets";
+import { ENGAGEMENT_AREAS, HOSTILE_SEEDS, type HostileSeed } from "../data/hostiles";
+import {
+  buildSitrep,
+  hostileFromSeed,
+  resolveShot,
+  stepHostilePatrol,
+} from "../combat/engagement";
 import { kindProfile, type KindProfile } from "../data/kinds";
 import { OPERATING_AREA } from "../data/operatingArea";
 import { findFleetFault } from "../faults/catalog";
-import { haversineM } from "../geo/haversine";
+import { bearingDeg, haversineM, pathLengthM } from "../geo/haversine";
 import {
   computeHealthScore,
   hoursForTick,
@@ -37,7 +47,7 @@ import {
 } from "../maintenance/deriveMaintenance";
 import { advanceAlongPath } from "../motion/advanceAlongPath";
 import { energyForStep } from "../motion/energyModel";
-import { FleetPlanner } from "../planning/FleetPlanner";
+import { FleetPlanner, VARIANT_WEIGHTS } from "../planning/FleetPlanner";
 import { terrainAt } from "../planning/terrainGrid";
 import { findFleetScenario } from "../scenarios/catalog";
 import { deriveSensors, meanSensorHealth } from "../sensors/deriveSensors";
@@ -97,10 +107,29 @@ interface AssetState extends Asset {
   maintenanceDueFlagged: boolean;
   lowEnergyFlagged: boolean;
   charging: boolean;
+  armorAtEngageStart: number;
+  lowAmmoFlagged: boolean;
+  armorCriticalFlagged: boolean;
+}
+
+interface EngagementState {
+  startedMs: number | null;
+  lastContactMs: number | null;
+  lastSitrepMs: number | null;
+  targetId: string | null;
+  lastReplanMs: number;
+}
+
+interface HostileState extends Hostile {
+  patrol: LatLng[];
+  cursor: { index: number };
+  /** Friendly ids this hostile has already opened fire on, for one-shot events. */
+  firedAt: Set<string>;
 }
 
 interface MissionState extends Mission {
   loopStartIndex: number | null;
+  engagement: EngagementState;
 }
 
 const ENGINE = "fleet.runtime";
@@ -110,10 +139,19 @@ const LINK = "fleet.link";
 const MAINT = "fleet.maintenance";
 const POWER = "fleet.power";
 const FAULT = "fleet.fault";
+const ZONES = "fleet.zones";
+const COMBAT = "fleet.combat";
+const SITREP_INTERVAL_MS = 30_000;
+const DETECT_RANGE_GROUND_M = 3000;
+const DETECT_RANGE_AIR_M = 4000;
+const RETARGET_MIN_INTERVAL_MS = 5000;
+const RETARGET_DRIFT_M = 120;
 
 export class FleetRuntime {
   private readonly config: FleetRuntimeConfig;
-  private readonly area: OperatingArea;
+  /** Replaced, never mutated, so `getArea` identity tracks zone edits. */
+  private area: OperatingArea;
+  private readonly defaultZones: Zone[];
   private readonly clock: SimulationClock;
   private readonly history: RingBuffer<FleetSnapshot>;
   private readonly eventLog: EventLog;
@@ -126,6 +164,7 @@ export class FleetRuntime {
   private scenario: FleetScenario;
   private assets = new Map<string, AssetState>();
   private missions = new Map<string, MissionState>();
+  private hostiles = new Map<string, HostileState>();
   private plannerState: PlannerState = emptyPlanner();
   private selectedAssetId: string | null = null;
   private accumulatorMs = 0;
@@ -133,6 +172,7 @@ export class FleetRuntime {
   private eventSeq = 0;
   private missionSeq = 0;
   private orderSeq = 0;
+  private zoneSeq = 0;
   private playbackMode: PlaybackMode = "live";
   private scrubTimestampMs: number | null = null;
   private linkHistory: number[] = [];
@@ -146,6 +186,7 @@ export class FleetRuntime {
   constructor(config: Partial<FleetRuntimeConfig> = {}, area: OperatingArea = OPERATING_AREA) {
     this.config = { ...DEFAULT_FLEET_CONFIG, ...config };
     this.area = area;
+    this.defaultZones = area.zones;
     this.clock = new SimulationClock(this.config.dtMs);
     this.eventLog = new EventLog(this.config.eventCapacity);
     this.planner = new FleetPlanner(area);
@@ -301,6 +342,7 @@ export class FleetRuntime {
       candidates,
       selectedCoaId: recommended?.id ?? candidates.find((c) => c.feasible)?.id ?? null,
       generatedAtMs: this.clock.getSimTimeMs(),
+      refusal: null,
     };
     const feasible = candidates.filter((coa) => coa.feasible).length;
     this.pushEvent(
@@ -343,6 +385,7 @@ export class FleetRuntime {
         `${asset.callsign}: dispatch refused · ${refusal}`,
         { assetId: asset.id, coaId: coa.id }
       );
+      this.plannerState = { ...this.plannerState, refusal };
       this.refreshLive();
       return { ok: false, reason: refusal };
     }
@@ -398,6 +441,23 @@ export class FleetRuntime {
       );
     }
     this.refreshLive();
+  }
+
+  /**
+   * Route-independent reasons an asset cannot be dispatched right now, or
+   * null when it can. Used to grey out quick actions before planning.
+   */
+  dispatchBlocker(assetId: string, override = false): string | null {
+    const asset = this.assets.get(assetId);
+    if (!asset) return "Unknown asset";
+    if (asset.status === "lost_link") return "Link lost";
+    if (asset.faults.includes("gps_loss")) return "GPS loss fault";
+    if (asset.faults.includes("radio_failure")) return "Radio failure fault";
+    if (asset.charging && asset.energyPct < DISPATCH_MIN_ENERGY_PCT) {
+      return `Charging · ${asset.energyPct.toFixed(0)}%`;
+    }
+    if (asset.maintenance.due && !override) return "Maintenance due";
+    return null;
   }
 
   // ---------------------------------------------------------------- faults and maintenance
@@ -456,6 +516,156 @@ export class FleetRuntime {
     this.refreshLive();
   }
 
+  // ---------------------------------------------------------------- zones
+
+  getZones = (): Zone[] => this.area.zones;
+
+  /** True when the current zone set differs from the shipped defaults. */
+  zonesModified(): boolean {
+    return this.area.zones !== this.defaultZones;
+  }
+
+  addZone(input: Partial<ZoneInput> & Pick<ZoneInput, "type" | "polygon">): Zone | null {
+    if (input.polygon.length < 3) return null;
+    this.zoneSeq += 1;
+    let id = `zone-${this.zoneSeq}`;
+    while (this.area.zones.some((zone) => zone.id === id)) {
+      this.zoneSeq += 1;
+      id = `zone-${this.zoneSeq}`;
+    }
+    const zone: Zone = {
+      id,
+      name: (input.name ?? "").trim() || defaultZoneName(input.type, this.area.zones),
+      type: input.type,
+      polygon: input.polygon.map((point) => ({ ...point })),
+    };
+    this.applyZones([...this.area.zones, zone]);
+    this.pushEvent(
+      input.type === "exclusion" ? "warning" : "info",
+      ZONES,
+      FleetEventCode.ZONE_CREATED,
+      `Zone created: ${zone.name} · ${describeZoneType(zone.type)}`,
+      { zoneId: zone.id, type: zone.type }
+    );
+    this.afterZoneChange();
+    return zone;
+  }
+
+  updateZone(zoneId: string, patch: Partial<ZoneInput>): boolean {
+    const current = this.area.zones.find((zone) => zone.id === zoneId);
+    if (!current) return false;
+    if (patch.polygon && patch.polygon.length < 3) return false;
+    const next: Zone = {
+      ...current,
+      name: patch.name !== undefined ? patch.name.trim() || current.name : current.name,
+      type: patch.type ?? current.type,
+      polygon: patch.polygon ? patch.polygon.map((point) => ({ ...point })) : current.polygon,
+    };
+    const geometryChanged = patch.polygon !== undefined || (patch.type !== undefined && patch.type !== current.type);
+    this.applyZones(this.area.zones.map((zone) => (zone.id === zoneId ? next : zone)), geometryChanged);
+    const what =
+      patch.polygon !== undefined
+        ? "shape"
+        : patch.type !== undefined && patch.type !== current.type
+          ? `type → ${describeZoneType(next.type)}`
+          : patch.name !== undefined && next.name !== current.name
+            ? `renamed from ${current.name}`
+            : "updated";
+    this.pushEvent("debug", ZONES, FleetEventCode.ZONE_UPDATED, `Zone ${next.name}: ${what}`, {
+      zoneId,
+      type: next.type,
+    });
+    if (geometryChanged) this.afterZoneChange();
+    else this.refreshLive();
+    return true;
+  }
+
+  removeZone(zoneId: string): boolean {
+    const current = this.area.zones.find((zone) => zone.id === zoneId);
+    if (!current) return false;
+    this.applyZones(this.area.zones.filter((zone) => zone.id !== zoneId));
+    this.pushEvent("info", ZONES, FleetEventCode.ZONE_REMOVED, `Zone removed: ${current.name}`, {
+      zoneId,
+      type: current.type,
+    });
+    this.afterZoneChange();
+    return true;
+  }
+
+  /** Replace every zone at once, e.g. when restoring a saved set. */
+  setZones(zones: Zone[], options: { silent?: boolean } = {}): void {
+    const clean = zones.filter((zone) => zone.polygon.length >= 3);
+    this.applyZones(clean);
+    if (!options.silent) {
+      this.pushEvent("info", ZONES, FleetEventCode.ZONES_RESET, `Zones loaded · ${clean.length}`, {
+        count: clean.length,
+      });
+    }
+    this.afterZoneChange();
+  }
+
+  resetZones(): void {
+    this.applyZones(this.defaultZones);
+    this.pushEvent("info", ZONES, FleetEventCode.ZONES_RESET, "Zones reset to defaults", {
+      count: this.defaultZones.length,
+    });
+    this.afterZoneChange();
+  }
+
+  private applyZones(zones: Zone[], geometryChanged = true): void {
+    this.area = { ...this.area, zones };
+    if (geometryChanged) this.planner.setZones(zones);
+  }
+
+  /**
+   * Zones just changed under the fleet: re-route active missions whose
+   * remaining path now crosses something their kind cannot occupy, and
+   * regenerate any pending planner candidates against the new grid.
+   */
+  private afterZoneChange(): void {
+    this.missions.forEach((mission) => {
+      if (mission.status !== "active") return;
+      const asset = this.assets.get(mission.assetId);
+      if (!asset) return;
+      const remaining = [
+        asset.position,
+        ...mission.coa.path.slice(Math.min(mission.waypointIndex, mission.coa.path.length)),
+      ];
+      if (this.planner.isPathPassable(asset.profile, this.scenario, remaining)) return;
+      const candidates = this.planner.generateCoas(this.publicAsset(asset), mission.objective, this.scenario);
+      const coa = candidates.find((candidate) => candidate.recommended) ?? candidates.find((candidate) => candidate.feasible);
+      if (coa) {
+        mission.coa = coa;
+        mission.loopStartIndex = coa.loopStartIndex;
+        mission.waypointIndex = 1;
+        mission.distanceTravelledM = 0;
+        mission.progress = 0;
+        mission.etaMs = coa.etaMs;
+        this.pushEvent(
+          "warning",
+          MISSION,
+          FleetEventCode.MISSION_REROUTED,
+          `${asset.callsign}: re-routed around zone · ${coa.variant} · ${(coa.distanceM / 1000).toFixed(1)} km`,
+          { assetId: asset.id, missionId: mission.id, coaId: coa.id }
+        );
+      } else {
+        this.finishMission(mission, "aborted", "Route blocked by zone");
+        this.pushEvent(
+          "warning",
+          MISSION,
+          FleetEventCode.MISSION_ABORTED,
+          `${asset.callsign}: mission aborted · route blocked by zone`,
+          { assetId: asset.id, missionId: mission.id }
+        );
+      }
+    });
+    if (this.plannerState.assetId && this.plannerState.objective && this.plannerState.candidates.length > 0) {
+      this.planMission(this.plannerState.assetId, this.plannerState.objective);
+      return;
+    }
+    this.refreshLive();
+  }
+
   // ---------------------------------------------------------------- reads
 
   getView = (): FleetView => this.viewSnapshot;
@@ -493,7 +703,9 @@ export class FleetRuntime {
   private seedFleet(): void {
     this.assets.clear();
     this.missions.clear();
+    this.hostiles.clear();
     this.selectedAssetId = null;
+    HOSTILE_SEEDS.forEach((seed) => this.hostiles.set(seed.id, this.createHostile(seed)));
     ASSET_SEEDS.forEach((seed, index) => {
       const state = this.createAsset(seed, index);
       this.assets.set(state.id, state);
@@ -556,6 +768,31 @@ export class FleetRuntime {
       maintenanceDueFlagged: false,
       lowEnergyFlagged: false,
       charging: seed.charging === true,
+      weapon: profile.weapon
+        ? {
+            system: profile.weapon,
+            ammo: profile.weapon.ammoCapacity,
+            safe: false,
+            shotsFired: 0,
+            hits: 0,
+            targetsEliminated: 0,
+            lastFiredMs: null,
+            targetId: null,
+          }
+        : null,
+      armorPct: 100,
+      armorAtEngageStart: 100,
+      lowAmmoFlagged: false,
+      armorCriticalFlagged: false,
+    };
+  }
+
+  private createHostile(seed: HostileSeed): HostileState {
+    return {
+      ...hostileFromSeed(seed),
+      patrol: seed.patrol.map((point) => ({ ...point })),
+      cursor: { index: seed.patrol.length > 1 ? 1 : 0 },
+      firedAt: new Set<string>(),
     };
   }
 
@@ -566,6 +803,7 @@ export class FleetRuntime {
     const dt = this.config.dtMs;
 
     this.assets.forEach((asset) => this.stepAsset(asset, t, dt));
+    this.hostiles.forEach((hostile) => this.stepHostile(hostile, t, dt));
     this.sampleFleetStats(t);
 
     this.liveSnapshot = this.buildSnapshot();
@@ -582,60 +820,15 @@ export class FleetRuntime {
     let distanceM = 0;
     let terrainCost = 1;
 
-    if (active && mission) {
-      const cellTerrain = terrainAt(this.planner.getGrid(), asset.position);
-      terrainCost = Math.max(1, asset.profile.terrainCost[cellTerrain] ?? 1);
-      const targetSpeed = (asset.profile.cruiseMps / terrainCost) * (overtemp ? 0.5 : 1);
-      asset.speedMps = approach(asset.speedMps, targetSpeed, asset.profile.accelMps2 * (dt / 1000));
-      distanceM = asset.speedMps * (dt / 1000);
-      const cursor = advanceAlongPath(
-        mission.coa.path,
-        {
-          waypointIndex: mission.waypointIndex,
-          position: asset.position,
-          headingDeg: asset.headingDeg,
-          travelledM: mission.distanceTravelledM,
-        },
-        distanceM
-      );
-      asset.position = cursor.position;
-      const wobble = asset.faults.includes("imu_drift") ? asset.rng.nextGaussian() * 6 : 0;
-      asset.headingDeg = (cursor.headingDeg + wobble + 360) % 360;
-      mission.waypointIndex = cursor.waypointIndex;
-      mission.distanceTravelledM = cursor.travelledM;
-      mission.progress =
-        mission.coa.distanceM > 0 ? Math.min(1, cursor.travelledM / mission.coa.distanceM) : 1;
-      const remainingM = Math.max(0, mission.coa.distanceM - cursor.travelledM);
-      mission.etaMs = asset.speedMps > 0.05 ? (remainingM / asset.speedMps) * 1000 : mission.coa.etaMs;
-
-      cursor.reached.forEach((index) => {
-        if (index === 0 || index >= mission.coa.path.length - 1) return;
-        this.pushEvent(
-          "debug",
-          MISSION,
-          FleetEventCode.WAYPOINT_REACHED,
-          `${asset.callsign}: waypoint ${index}/${mission.coa.path.length - 1}`,
-          { assetId: asset.id, missionId: mission.id, index }
-        );
-      });
-
-      if (cursor.finished) {
-        if (mission.loopStartIndex !== null) {
-          mission.loops += 1;
-          mission.waypointIndex = mission.loopStartIndex + 1;
-          mission.distanceTravelledM = 0;
-          mission.progress = 0;
-          this.pushEvent(
-            "info",
-            MISSION,
-            FleetEventCode.PATROL_LOOP,
-            `${asset.callsign}: patrol loop ${mission.loops} complete`,
-            { assetId: asset.id, missionId: mission.id, loops: mission.loops }
-          );
-        } else {
-          this.completeMission(asset, mission, t);
-        }
-      }
+    if (active && mission && mission.objective.type === "engage" && asset.weapon) {
+      const result = this.stepEngage(asset, mission, t, dt, overtemp);
+      distanceM = result.distanceM;
+      terrainCost = result.terrainCost;
+      if (distanceM > 0) asset.movingForS += dt / 1000;
+    } else if (active && mission) {
+      const result = this.moveAlongMission(asset, mission, t, dt, overtemp);
+      distanceM = result.distanceM;
+      terrainCost = result.terrainCost;
       asset.movingForS += dt / 1000;
     } else {
       asset.speedMps = approach(asset.speedMps, 0, asset.profile.accelMps2 * (dt / 1000) * 2);
@@ -693,6 +886,340 @@ export class FleetRuntime {
 
     this.deriveAssetState(asset, t, distanceM > 0, dt);
   }
+
+  /** Advances an asset along its mission path. Returns the distance moved and the terrain multiplier. */
+  private moveAlongMission(
+    asset: AssetState,
+    mission: MissionState,
+    t: number,
+    dt: number,
+    overtemp: boolean
+  ): { distanceM: number; terrainCost: number } {
+    let distanceM = 0;
+    let terrainCost = 1;
+    const cellTerrain = terrainAt(this.planner.getGrid(), asset.position);
+    terrainCost = Math.max(1, asset.profile.terrainCost[cellTerrain] ?? 1);
+    const targetSpeed =
+      (asset.profile.cruiseMps / terrainCost) *
+      (overtemp ? 0.5 : 1) *
+      (asset.faults.includes("armor_breach") ? 0 : 1);
+    asset.speedMps = approach(asset.speedMps, targetSpeed, asset.profile.accelMps2 * (dt / 1000));
+    distanceM = asset.speedMps * (dt / 1000);
+    const cursor = advanceAlongPath(
+      mission.coa.path,
+      {
+        waypointIndex: mission.waypointIndex,
+        position: asset.position,
+        headingDeg: asset.headingDeg,
+        travelledM: mission.distanceTravelledM,
+      },
+      distanceM
+    );
+    asset.position = cursor.position;
+    const wobble = asset.faults.includes("imu_drift") ? asset.rng.nextGaussian() * 6 : 0;
+    asset.headingDeg = (cursor.headingDeg + wobble + 360) % 360;
+    mission.waypointIndex = cursor.waypointIndex;
+    mission.distanceTravelledM = cursor.travelledM;
+    mission.progress =
+      mission.coa.distanceM > 0 ? Math.min(1, cursor.travelledM / mission.coa.distanceM) : 1;
+    const remainingM = Math.max(0, mission.coa.distanceM - cursor.travelledM);
+    mission.etaMs = asset.speedMps > 0.05 ? (remainingM / asset.speedMps) * 1000 : mission.coa.etaMs;
+
+    cursor.reached.forEach((index) => {
+      if (index === 0 || index >= mission.coa.path.length - 1) return;
+      this.pushEvent(
+        "debug",
+        MISSION,
+        FleetEventCode.WAYPOINT_REACHED,
+        `${asset.callsign}: waypoint ${index}/${mission.coa.path.length - 1}`,
+        { assetId: asset.id, missionId: mission.id, index }
+      );
+    });
+
+    if (cursor.finished) {
+      if (mission.loopStartIndex !== null) {
+        mission.loops += 1;
+        mission.waypointIndex = mission.loopStartIndex + 1;
+        mission.distanceTravelledM = 0;
+        mission.progress = 0;
+        this.pushEvent(
+          "info",
+          MISSION,
+          FleetEventCode.PATROL_LOOP,
+          `${asset.callsign}: patrol loop ${mission.loops} complete`,
+          { assetId: asset.id, missionId: mission.id, loops: mission.loops }
+        );
+      } else if (mission.objective.type === "engage") {
+        // Hold at the last planned point; stepEngage decides what happens next.
+        asset.speedMps = 0;
+      } else {
+        this.completeMission(asset, mission, t);
+      }
+    }
+    return { distanceM, terrainCost };
+  }
+
+  // ---------------------------------------------------------------- combat
+
+  private stepEngage(
+    asset: AssetState,
+    mission: MissionState,
+    t: number,
+    dt: number,
+    overtemp: boolean
+  ): { distanceM: number; terrainCost: number } {
+    const weapon = asset.weapon;
+    if (!weapon) return { distanceM: 0, terrainCost: 1 };
+    const ids = mission.objective.hostileIds ?? [];
+    const eliminated = ids.filter((id) => this.hostiles.get(id)?.status === "eliminated").length;
+    mission.progress = ids.length > 0 ? eliminated / ids.length : 1;
+    const target =
+      ids
+        .map((id) => this.hostiles.get(id))
+        .find((hostile): hostile is HostileState => hostile !== undefined && hostile.status !== "eliminated") ??
+      null;
+    if (!target) {
+      this.completeEngagement(asset, mission, t, "objective clear");
+      return { distanceM: 0, terrainCost: 1 };
+    }
+    const engagement = mission.engagement;
+    if (engagement.targetId !== target.id) {
+      engagement.targetId = target.id;
+      weapon.targetId = target.id;
+      if (!target.engagedBy.includes(asset.id)) target.engagedBy = [...target.engagedBy, asset.id];
+      this.retargetPath(asset, mission, target, t);
+    }
+
+    const distance = haversineM(asset.position, target.position);
+    if (distance <= weapon.system.rangeM * 0.9) {
+      // In range: hold, face the target, and work the weapon.
+      asset.speedMps = approach(asset.speedMps, 0, asset.profile.accelMps2 * (dt / 1000) * 2);
+      asset.headingDeg = bearingDeg(asset.position, target.position);
+      if (engagement.startedMs === null) {
+        engagement.startedMs = t;
+        asset.armorAtEngageStart = asset.armorPct;
+        this.pushEvent(
+          "warning",
+          COMBAT,
+          FleetEventCode.ENGAGEMENT_STARTED,
+          `${asset.callsign}: engaging ${target.callsign} at ${distance.toFixed(0)} m`,
+          { assetId: asset.id, missionId: mission.id, hostileId: target.id }
+        );
+      }
+      const intervalMs = 60_000 / weapon.system.roundsPerMin;
+      const canFire =
+        !weapon.safe &&
+        weapon.ammo > 0 &&
+        !asset.faults.includes("armor_breach") &&
+        (weapon.lastFiredMs === null || t - weapon.lastFiredMs >= intervalMs);
+      if (canFire) {
+        weapon.lastFiredMs = t;
+        weapon.ammo -= 1;
+        weapon.shotsFired += 1;
+        engagement.lastContactMs = t;
+        const hit = resolveShot(asset.rng, weapon.system, distance);
+        this.pushEvent(
+          "debug",
+          COMBAT,
+          FleetEventCode.WEAPON_FIRED,
+          `${asset.callsign}: ${weapon.system.name} at ${target.callsign} · ${distance.toFixed(0)} m · ${hit ? "hit" : "miss"}`,
+          { assetId: asset.id, hostileId: target.id, hit }
+        );
+        if (hit) {
+          weapon.hits += 1;
+          target.hp = Math.max(0, target.hp - weapon.system.damagePerHit);
+          if (target.hp <= 0) {
+            target.status = "eliminated";
+            target.eliminatedAtMs = t;
+            target.eliminatedBy = asset.id;
+            target.speedMps = 0;
+            weapon.targetsEliminated += 1;
+            this.pushEvent(
+              "warning",
+              COMBAT,
+              FleetEventCode.TARGET_ELIMINATED,
+              `${asset.callsign}: ${target.callsign} eliminated · ${eliminated + 1}/${ids.length}`,
+              { assetId: asset.id, hostileId: target.id }
+            );
+            this.emitSitrep(asset, mission, t);
+          } else {
+            if (target.hp < 0.5) target.status = "suppressed";
+            this.pushEvent(
+              "debug",
+              COMBAT,
+              FleetEventCode.TARGET_HIT,
+              `${asset.callsign}: hit ${target.callsign} · ${(target.hp * 100).toFixed(0)}% remaining`,
+              { assetId: asset.id, hostileId: target.id }
+            );
+          }
+        }
+        if (weapon.ammo === 0) {
+          this.pushEvent("warning", COMBAT, FleetEventCode.AMMO_EXHAUSTED, `${asset.callsign}: ammunition exhausted`, {
+            assetId: asset.id,
+          });
+          this.completeEngagement(asset, mission, t, "ammunition exhausted");
+          return { distanceM: 0, terrainCost: 1 };
+        }
+        if (!asset.lowAmmoFlagged && weapon.ammo <= Math.ceil(weapon.system.ammoCapacity * 0.2)) {
+          asset.lowAmmoFlagged = true;
+          this.pushEvent("warning", COMBAT, FleetEventCode.AMMO_LOW, `${asset.callsign}: ammo low · ${weapon.ammo}/${weapon.system.ammoCapacity}`, {
+            assetId: asset.id,
+          });
+        }
+      }
+      this.maybeSitrep(asset, mission, t);
+      return { distanceM: 0, terrainCost: 1 };
+    }
+
+    // Approaching: re-plan when the target has drifted from the planned end.
+    const end = mission.coa.path[mission.coa.path.length - 1];
+    if (t - engagement.lastReplanMs >= RETARGET_MIN_INTERVAL_MS && haversineM(end, target.position) > RETARGET_DRIFT_M) {
+      this.retargetPath(asset, mission, target, t);
+    }
+    const moved = this.moveAlongMission(asset, mission, t, dt, overtemp);
+    this.maybeSitrep(asset, mission, t);
+    return moved;
+  }
+
+  private retargetPath(asset: AssetState, mission: MissionState, target: HostileState, t: number): void {
+    mission.engagement.lastReplanMs = t;
+    const map = this.planner.getCostMap(asset.profile, this.scenario);
+    const path = this.planner.planLeg(map, asset.position, target.position, VARIANT_WEIGHTS.direct);
+    if (!path) return;
+    mission.coa = { ...mission.coa, path, distanceM: pathLengthM(path) };
+    mission.waypointIndex = 1;
+    mission.distanceTravelledM = 0;
+  }
+
+  private maybeSitrep(asset: AssetState, mission: MissionState, t: number): void {
+    const engagement = mission.engagement;
+    if (engagement.startedMs === null) return;
+    if (engagement.lastSitrepMs !== null && t - engagement.lastSitrepMs < SITREP_INTERVAL_MS) return;
+    this.emitSitrep(asset, mission, t);
+  }
+
+  private emitSitrep(asset: AssetState, mission: MissionState, t: number): void {
+    const engagement = mission.engagement;
+    engagement.lastSitrepMs = t;
+    mission.sitrep = buildSitrep(
+      mission,
+      this.publicAsset(asset),
+      this.hostiles,
+      t,
+      engagement.startedMs,
+      engagement.lastContactMs,
+      asset.armorAtEngageStart
+    );
+    this.pushEvent("info", COMBAT, FleetEventCode.SITREP, mission.sitrep.summary, {
+      assetId: asset.id,
+      missionId: mission.id,
+      sitrep: mission.sitrep,
+    });
+  }
+
+  private completeEngagement(asset: AssetState, mission: MissionState, t: number, reason: string): void {
+    if (mission.engagement.startedMs === null) mission.engagement.startedMs = t;
+    this.emitSitrep(asset, mission, t);
+    const sitrep = mission.sitrep;
+    this.pushEvent(
+      "info",
+      COMBAT,
+      FleetEventCode.ENGAGEMENT_COMPLETE,
+      `${asset.callsign}: engagement complete · ${reason}` +
+        (sitrep ? ` · ${sitrep.targetsEliminated}/${sitrep.targetsAssigned} eliminated` : ""),
+      { assetId: asset.id, missionId: mission.id }
+    );
+    const eliminatedAny = (sitrep?.targetsEliminated ?? 0) > 0;
+    this.finishMission(mission, eliminatedAny || reason === "objective clear" ? "complete" : "aborted", reason);
+    if (asset.weapon && asset.weapon.ammo === 0) {
+      this.returnToBase(asset.id);
+    }
+  }
+
+  private stepHostile(hostile: HostileState, t: number, dt: number): void {
+    stepHostilePatrol(hostile, hostile.patrol, hostile.cursor, dt);
+    if (hostile.status === "eliminated") return;
+
+    let nearest: AssetState | null = null;
+    let nearestM = Number.POSITIVE_INFINITY;
+    this.assets.forEach((asset) => {
+      const distance = haversineM(asset.position, hostile.position);
+      const detectM = asset.domain === "air" ? DETECT_RANGE_AIR_M : DETECT_RANGE_GROUND_M;
+      if (distance <= detectM && distance < nearestM) {
+        nearest = asset;
+        nearestM = distance;
+      }
+      if (distance <= hostile.weaponRangeM && !asset.faults.includes("armor_breach")) {
+        const rate = hostile.damagePerS * (hostile.status === "suppressed" ? 0.4 : 1);
+        asset.armorPct = Math.max(0, asset.armorPct - rate * (dt / 1000));
+        if (!hostile.firedAt.has(asset.id)) {
+          hostile.firedAt.add(asset.id);
+          this.pushEvent(
+            "warning",
+            COMBAT,
+            FleetEventCode.INCOMING_FIRE,
+            `${asset.callsign}: taking fire from ${hostile.callsign} · ${distance.toFixed(0)} m`,
+            { assetId: asset.id, hostileId: hostile.id }
+          );
+        }
+        if (asset.armorPct < 40 && !asset.armorCriticalFlagged) {
+          asset.armorCriticalFlagged = true;
+          this.pushEvent("error", COMBAT, FleetEventCode.ARMOR_CRITICAL, `${asset.callsign}: armor critical · ${asset.armorPct.toFixed(0)}%`, {
+            assetId: asset.id,
+          });
+        }
+        if (asset.armorPct <= 0 && !asset.faults.includes("armor_breach")) {
+          this.injectFault(asset.id, "armor_breach");
+        }
+      }
+    });
+    if (nearest !== null) {
+      const spotter: AssetState = nearest;
+      if (hostile.lastSeenMs === null) {
+        this.pushEvent(
+          "warning",
+          COMBAT,
+          FleetEventCode.HOSTILE_DETECTED,
+          `${hostile.callsign} (${hostile.label}) detected by ${spotter.callsign} · threat ${hostile.threat}`,
+          { hostileId: hostile.id, assetId: spotter.id }
+        );
+      }
+      hostile.lastSeenMs = t;
+      hostile.detectedBy = spotter.id;
+    }
+  }
+
+  /** Weapons hold on or off for an armed asset. */
+  setWeaponsHold(assetId: string, safe: boolean): void {
+    const asset = this.assets.get(assetId);
+    if (!asset?.weapon || asset.weapon.safe === safe) return;
+    asset.weapon.safe = safe;
+    this.pushEvent("info", COMBAT, FleetEventCode.WEAPONS_HOLD, `${asset.callsign}: weapons ${safe ? "hold" : "free"}`, {
+      assetId,
+      safe,
+    });
+    this.refreshLive();
+  }
+
+  /** Reloads and repairs armor. Only at the home depot. */
+  rearm(assetId: string): boolean {
+    const asset = this.assets.get(assetId);
+    if (!asset?.weapon) return false;
+    if (!this.atHomeDepot(asset)) return false;
+    asset.weapon.ammo = asset.weapon.system.ammoCapacity;
+    asset.armorPct = 100;
+    asset.lowAmmoFlagged = false;
+    asset.armorCriticalFlagged = false;
+    if (asset.faults.includes("armor_breach")) this.clearFault(assetId, "armor_breach");
+    this.pushEvent("info", COMBAT, FleetEventCode.REARMED, `${asset.callsign}: rearmed · ${asset.weapon.ammo} rds · armor 100%`, {
+      assetId,
+    });
+    this.refreshLive();
+    return true;
+  }
+
+  getHostiles = (): Hostile[] => Array.from(this.hostiles.values()).map(publicHostile);
+  getEngagementAreas = () => ENGAGEMENT_AREAS;
 
   /** Terrain-aware sensors, link, maintenance, and status for one asset. */
   private deriveAssetState(asset: AssetState, t: number, moving: boolean, dt: number): void {
@@ -811,6 +1338,11 @@ export class FleetRuntime {
       return `Charging · ${asset.energyPct.toFixed(0)}% below ${DISPATCH_MIN_ENERGY_PCT}% minimum`;
     }
     if (asset.energyPct - coa.energyPct < 5) return "Insufficient energy for route";
+    if (coa.objective.type === "engage") {
+      if (!asset.weapon) return "No weapon system";
+      if (asset.weapon.ammo <= 0) return "No ammunition · rearm at depot";
+      if (asset.faults.includes("armor_breach")) return "Armor breached";
+    }
     if (asset.maintenance.due && !override) return "Maintenance due · override required";
     return null;
   }
@@ -838,7 +1370,9 @@ export class FleetRuntime {
       loops: 0,
       etaMs: coa.etaMs,
       failureReason: null,
+      sitrep: null,
       loopStartIndex: coa.loopStartIndex,
+      engagement: { startedMs: null, lastContactMs: null, lastSitrepMs: null, targetId: null, lastReplanMs: -Infinity },
     };
     this.missions.set(mission.id, mission);
     asset.missionId = mission.id;
@@ -877,6 +1411,11 @@ export class FleetRuntime {
     if (asset && asset.missionId === mission.id) {
       asset.missionId = null;
     }
+    if (asset?.weapon) asset.weapon.targetId = null;
+    (mission.objective.hostileIds ?? []).forEach((id) => {
+      const hostile = this.hostiles.get(id);
+      if (hostile) hostile.engagedBy = hostile.engagedBy.filter((engager) => engager !== mission.assetId);
+    });
   }
 
   /** Keep the mission list bounded: active ones plus the most recent finished. */
@@ -907,6 +1446,7 @@ export class FleetRuntime {
       maintenance: 0,
       lost_link: 0,
       fault: 0,
+      engaging: 0,
     };
     assets.forEach((asset) => {
       byStatus[asset.status] += 1;
@@ -919,6 +1459,8 @@ export class FleetRuntime {
       meanLinkQuality: mean(assets.map((asset) => asset.link.quality)),
       meanEnergyPct: mean(assets.map((asset) => asset.energyPct)),
       maintenanceDue: assets.filter((asset) => asset.maintenance.due).length,
+      hostilesActive: Array.from(this.hostiles.values()).filter((h) => h.status !== "eliminated").length,
+      hostilesEliminated: Array.from(this.hostiles.values()).filter((h) => h.status === "eliminated").length,
       linkHistory: this.linkHistory,
       energyHistory: this.energyHistory,
     };
@@ -946,6 +1488,8 @@ export class FleetRuntime {
       homeDepotId: asset.homeDepotId,
       rssiHistory: asset.rssiHistory,
       energyHistory: asset.energyHistory,
+      weapon: asset.weapon ? { ...asset.weapon } : null,
+      armorPct: asset.armorPct,
     };
   }
 
@@ -963,6 +1507,7 @@ export class FleetRuntime {
       planner: this.plannerState,
       stats: this.buildStats(assets),
       selectedAssetId: this.selectedAssetId,
+      hostiles: this.getHostiles(),
     };
   }
 
@@ -981,9 +1526,12 @@ export class FleetRuntime {
       scenarioId: this.scenario.id,
       historyStartMs: history[0]?.timestampMs ?? null,
       historyEndMs: history[history.length - 1]?.timestampMs ?? null,
-      activeCount: assets.filter((a) => a.status === "en_route" || a.status === "patrolling" || a.status === "returning").length,
+      activeCount: assets.filter(
+        (a) => a.status === "en_route" || a.status === "patrolling" || a.status === "returning" || a.status === "engaging"
+      ).length,
       faultCount: assets.filter((a) => a.status === "fault").length,
       lostLinkCount: assets.filter((a) => a.status === "lost_link").length,
+      hostileCount: Array.from(this.hostiles.values()).filter((h) => h.status !== "eliminated").length,
       selectedAssetId: this.selectedAssetId,
     };
   }
@@ -1042,8 +1590,31 @@ function findFleetSnapshotAt(history: FleetSnapshot[], timestampMs: number): Fle
   return found ?? history[0];
 }
 
+function publicHostile(hostile: HostileState): Hostile {
+  return {
+    id: hostile.id,
+    callsign: hostile.callsign,
+    kind: hostile.kind,
+    domain: hostile.domain,
+    label: hostile.label,
+    position: { ...hostile.position },
+    headingDeg: hostile.headingDeg,
+    speedMps: hostile.speedMps,
+    status: hostile.status,
+    threat: hostile.threat,
+    hp: hostile.hp,
+    weaponRangeM: hostile.weaponRangeM,
+    damagePerS: hostile.damagePerS,
+    lastSeenMs: hostile.lastSeenMs,
+    detectedBy: hostile.detectedBy,
+    eliminatedAtMs: hostile.eliminatedAtMs,
+    eliminatedBy: hostile.eliminatedBy,
+    engagedBy: hostile.engagedBy,
+  };
+}
+
 function emptyPlanner(): PlannerState {
-  return { assetId: null, objective: null, candidates: [], selectedCoaId: null, generatedAtMs: null };
+  return { assetId: null, objective: null, candidates: [], selectedCoaId: null, generatedAtMs: null, refusal: null };
 }
 
 function approach(current: number, target: number, maxDelta: number): number {
@@ -1067,6 +1638,7 @@ function deriveStatus(asset: AssetState, mission: Mission | null, linkLost: bool
   if (linkLost) return "lost_link";
   if (asset.faults.length > 0) return "fault";
   if (mission && mission.status === "active") {
+    if (mission.objective.type === "engage") return "engaging";
     if (mission.objective.type === "rtb") return "returning";
     if (mission.objective.type === "patrol") return "patrolling";
     return "en_route";
@@ -1108,4 +1680,29 @@ export function formatDuration(ms: number): string {
   const s = totalS % 60;
   if (m === 0) return `${s}s`;
   return `${m}m ${s.toString().padStart(2, "0")}s`;
+}
+
+const ZONE_TYPE_LABEL: Record<Zone["type"], string> = {
+  no_fly: "no-fly",
+  restricted: "restricted",
+  hazard: "hazard",
+  shallow_water: "shallow water",
+  low_comms: "low comms",
+  exclusion: "exclusion",
+};
+
+export function describeZoneType(type: Zone["type"]): string {
+  return ZONE_TYPE_LABEL[type];
+}
+
+function defaultZoneName(type: Zone["type"], existing: Zone[]): string {
+  const base = type === "exclusion" ? "Exclusion" : `${describeZoneType(type)} zone`;
+  const stem = base.charAt(0).toUpperCase() + base.slice(1);
+  let n = existing.filter((zone) => zone.type === type).length + 1;
+  let name = `${stem} ${n}`;
+  while (existing.some((zone) => zone.name === name)) {
+    n += 1;
+    name = `${stem} ${n}`;
+  }
+  return name;
 }

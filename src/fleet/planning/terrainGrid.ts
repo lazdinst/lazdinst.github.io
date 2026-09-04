@@ -4,6 +4,7 @@ import type {
   OperatingArea,
   TerrainClass,
   XY,
+  Zone,
   ZoneType,
 } from "../types";
 import { createProjection, type Projection } from "../geo/projection";
@@ -25,6 +26,7 @@ export const ZONE_TYPES: ZoneType[] = [
   "hazard",
   "shallow_water",
   "low_comms",
+  "exclusion",
 ];
 
 export function zoneBit(type: ZoneType): number {
@@ -88,18 +90,30 @@ export function buildTerrainGrid(area: OperatingArea): TerrainGrid {
         if (patch) terrainClass = patch.class;
       }
       terrain[index] = TERRAIN_CLASSES.indexOf(terrainClass);
-
-      let mask = 0;
-      area.zones.forEach((zone) => {
-        if (pointInPolygon(center, zone.polygon)) {
-          mask |= zoneBit(zone.type);
-        }
-      });
-      zoneMask[index] = mask;
     }
   }
 
-  return { area, projection, cols, rows, cellSizeM, origin, terrain, zoneMask, cellCenters };
+  const grid: TerrainGrid = { area, projection, cols, rows, cellSizeM, origin, terrain, zoneMask, cellCenters };
+  rasterizeZones(grid, area.zones);
+  return grid;
+}
+
+/**
+ * Recomputes zone membership for every cell in place. Terrain is untouched,
+ * so editing zones never needs the full grid rebuilt.
+ */
+export function rasterizeZones(grid: TerrainGrid, zones: Zone[]): void {
+  grid.area = { ...grid.area, zones };
+  for (let index = 0; index < grid.zoneMask.length; index += 1) {
+    const center = grid.cellCenters[index];
+    let mask = 0;
+    zones.forEach((zone) => {
+      if (zone.polygon.length >= 3 && pointInPolygon(center, zone.polygon)) {
+        mask |= zoneBit(zone.type);
+      }
+    });
+    grid.zoneMask[index] = mask;
+  }
 }
 
 export function cellIndexAt(grid: TerrainGrid, point: LatLng): number | null {

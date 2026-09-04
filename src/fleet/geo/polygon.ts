@@ -36,6 +36,15 @@ export function distanceToPolylineXY(p: XY, line: XY[]): number {
   return best;
 }
 
+/** Shoelace area of a polygon given in projected meters. */
+export function polygonAreaM2(polygon: XY[]): number {
+  let sum = 0;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i, i += 1) {
+    sum += polygon[j].x * polygon[i].y - polygon[i].x * polygon[j].y;
+  }
+  return Math.abs(sum) / 2;
+}
+
 export function polygonCentroid(polygon: LatLng[]): LatLng {
   let lat = 0;
   let lng = 0;

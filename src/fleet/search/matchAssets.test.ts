@@ -31,6 +31,8 @@ function asset(overrides: Partial<Asset>): Asset {
     homeDepotId: "d",
     rssiHistory: [],
     energyHistory: [],
+    weapon: null,
+    armorPct: 100,
     ...overrides,
   };
 }
@@ -71,5 +73,30 @@ describe("matchAssets", () => {
     expect(bySeverity.map((a) => a.id)).toEqual(["2", "3", "1"]);
     const air = filterAssets(list, "", { domains: ["air"], statuses: [] });
     expect(air.map((a) => a.id)).toEqual(["3", "1"]);
+  });
+
+  it("filters by charge band, mission type, and kind", () => {
+    const list = [
+      asset({ id: "1", callsign: "A", energyPct: 18, missionId: "m1" }),
+      asset({ id: "2", callsign: "B", energyPct: 55, kind: "usv", domain: "sea" }),
+      asset({ id: "3", callsign: "C", energyPct: 90, missionId: "m2" }),
+    ];
+    const missionTypeOf = (a: Asset) => (a.missionId === "m1" ? "patrol" : a.missionId === "m2" ? "transit" : null);
+    const base = { domains: [], statuses: [] };
+    expect(filterAssets(list, "", { ...base, energy: { max: 25 } }).map((a) => a.id)).toEqual(["1"]);
+    expect(filterAssets(list, "", { ...base, energy: { min: 50 } }).map((a) => a.id)).toEqual(["2", "3"]);
+    expect(filterAssets(list, "", { ...base, missions: ["patrol"] }, "callsign", missionTypeOf).map((a) => a.id)).toEqual(["1"]);
+    expect(filterAssets(list, "", { ...base, missions: ["none"] }, "callsign", missionTypeOf).map((a) => a.id)).toEqual(["2"]);
+    expect(filterAssets(list, "", { ...base, kinds: ["usv"] }).map((a) => a.id)).toEqual(["2"]);
+  });
+
+  it("supports energy and mission query syntax", () => {
+    const a = asset({ energyPct: 42, missionId: "m1" });
+    const missionTypeOf = () => "survey" as const;
+    expect(matchesQuery(a, "energy:<50")).toBe(true);
+    expect(matchesQuery(a, "energy:>=50")).toBe(false);
+    expect(matchesQuery(a, "charge:40")).toBe(false);
+    expect(matchesQuery(a, "mission:survey", missionTypeOf)).toBe(true);
+    expect(matchesQuery(a, "mission:none", missionTypeOf)).toBe(false);
   });
 });

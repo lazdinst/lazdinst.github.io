@@ -1,3 +1,4 @@
+import type { WeaponState } from "./Combat";
 import type { LatLng } from "./geo";
 
 export type AssetDomain = "air" | "ground" | "sea";
@@ -8,7 +9,9 @@ export type AssetKind =
   | "ugv_rover"
   | "ugv_tracked"
   | "legged"
-  | "usv";
+  | "usv"
+  | "ugv_armored"
+  | "uav_armed";
 
 export type AssetStatus =
   | "idle"
@@ -18,7 +21,8 @@ export type AssetStatus =
   | "charging"
   | "maintenance"
   | "lost_link"
-  | "fault";
+  | "fault"
+  | "engaging";
 
 export type SensorKind =
   | "gps"
@@ -84,7 +88,8 @@ export type FleetFaultId =
   | "imu_drift"
   | "motor_overtemp"
   | "radio_failure"
-  | "battery_cell";
+  | "battery_cell"
+  | "armor_breach";
 
 export interface Asset {
   id: string;
@@ -109,4 +114,8 @@ export interface Asset {
   /** Recent samples, oldest first, for sparklines. */
   rssiHistory: number[];
   energyHistory: number[];
+  /** Present on armed kinds only. */
+  weapon: WeaponState | null;
+  /** 0..100. Hostile fire wears it down; a breach is a mobility kill. */
+  armorPct: number;
 }

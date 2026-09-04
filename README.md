@@ -24,7 +24,7 @@ npm run build    # tsc -b && vite build → docs/ (served by GitHub Pages)
 
 ## Basemap
 
-Fleet Ops uses Esri's World Light Gray and World Dark Gray canvas tiles with attribution. Everything drawn on top of them is simulated.
+Fleet Ops uses CARTO Dark Matter (dark theme) and Positron (light theme) raster tiles when `VITE_CARTO_API_KEY` is set in `.env`; without a key it falls back to Esri's World Light Gray and World Dark Gray canvas tiles. Both carry the required attribution. Everything drawn on top of them is simulated.
 
 ## URDF files
 

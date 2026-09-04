@@ -13,6 +13,8 @@ export {
   headingDelta,
   pathLengthM,
   pointInPolygon,
+  polygonAreaM2,
+  polygonCentroid,
   createProjection,
 } from "./geo";
 export {
@@ -21,13 +23,16 @@ export {
   matchesFilters,
   parseQuery,
   sortAssets,
+  countActiveFilters,
   EMPTY_FILTERS,
+  ENERGY_BANDS,
 } from "./search/matchAssets";
-export type { AssetFilters, AssetSort } from "./search/matchAssets";
+export type { AssetFilters, AssetSort, EnergyBand, MissionFilter, MissionTypeOf } from "./search/matchAssets";
 export { SENSOR_TEMPLATES } from "./sensors/deriveSensors";
 export { LINK_LOSS_TIMEOUT_MS } from "./sensors/linkModel";
 export { FleetPlanner, COA_VARIANTS, VARIANT_WEIGHTS, ENERGY_RESERVE_PCT } from "./planning/FleetPlanner";
 export { TERRAIN_CLASSES, ZONE_TYPES, terrainAt, zonesAt } from "./planning/terrainGrid";
+export { DEFAULT_ZONES } from "./data/operatingArea";
 export {
   FleetRuntime,
   DEFAULT_FLEET_CONFIG,
@@ -35,6 +40,7 @@ export {
   DISPATCH_MIN_ENERGY_PCT,
   describeObjective,
   describeTarget,
+  describeZoneType,
   formatDuration,
   formatLatLng,
 } from "./runtime/FleetRuntime";
@@ -49,3 +55,10 @@ export {
   subscribeFleetSnapshot,
   subscribeFleetView,
 } from "./runtime/runtime";
+export { HOSTILE_SEEDS, ENGAGEMENT_AREAS, HOSTILE_KIND_LABEL, HOSTILE_DOMAIN } from "./data/hostiles";
+export {
+  buildEngageObjective,
+  buildSitrep,
+  hitProbabilityAt,
+  orderHostilesFrom,
+} from "./combat/engagement";

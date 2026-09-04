@@ -1,11 +1,8 @@
 import { FC, useEffect } from "react";
-import { AppChrome } from "../components/AppChrome";
-import { FleetInspector } from "./containers/AssetInspector";
-import { FLEET_TITLE, FleetCommandBar } from "./containers/FleetCommandBar/FleetCommandBar";
-import { FleetLog } from "./containers/FleetLog";
-import { FleetMap } from "./containers/FleetMap";
-import { OperationsPanel } from "./containers/OperationsPanel";
 import { FleetProvider } from "./providers/FleetProvider";
+import { FleetShell } from "./shell/FleetShell";
+
+export const FLEET_TITLE = "Fleet Ops";
 
 /** Autonomous fleet mapping, sensor integration, and mission dispatch. */
 const FleetShowcase: FC = () => {
@@ -15,15 +12,7 @@ const FleetShowcase: FC = () => {
 
   return (
     <FleetProvider>
-      <AppChrome
-        commandBar={<FleetCommandBar />}
-        inspectorTitle="Assets"
-        auxiliaryTitle="Operations"
-        inspector={<FleetInspector />}
-        stage={<FleetMap />}
-        auxiliary={<OperationsPanel />}
-        output={<FleetLog />}
-      />
+      <FleetShell />
     </FleetProvider>
   );
 };

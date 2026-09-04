@@ -6,6 +6,7 @@ import type {
   LatLng,
   Objective,
   OperatingArea,
+  Zone,
 } from "../types";
 import { kindProfile, type KindProfile } from "../data/kinds";
 
@@ -19,6 +20,8 @@ import {
   buildCoverage,
   buildTerrainGrid,
   cellIndexAt,
+  rasterizeZones,
+  zonesAt,
   type TerrainGrid,
 } from "./terrainGrid";
 
@@ -55,6 +58,17 @@ export class FleetPlanner {
 
   getGrid(): TerrainGrid {
     return this.grid;
+  }
+
+  /** Swap the zone set: re-rasterizes membership and drops every cached cost map. */
+  setZones(zones: Zone[]): void {
+    rasterizeZones(this.grid, zones);
+    this.costMaps.clear();
+  }
+
+  /** True when every segment of `path` stays on cells `profile` may occupy. */
+  isPathPassable(profile: KindProfile, scenario: FleetScenario, path: LatLng[]): boolean {
+    return pathPassable(this.getCostMap(profile, scenario), path);
   }
 
   getCostMap(profile: KindProfile, scenario: FleetScenario): CostMap {
@@ -127,6 +141,21 @@ export class FleetPlanner {
         }
         return { path, loopStartIndex };
       }
+      case "engage": {
+        // Chain through the hostiles in the given order; no loop. The runtime
+        // re-plans legs as targets move or fall.
+        const targets = objective.waypoints ?? [];
+        if (targets.length === 0) return null;
+        const path: LatLng[] = [start];
+        let cursor = start;
+        for (const target of targets) {
+          const leg = this.planLeg(map, cursor, target, weights);
+          if (!leg) return null;
+          path.push(...leg.slice(1));
+          cursor = target;
+        }
+        return { path, loopStartIndex: null };
+      }
       case "survey": {
         if (map.profile.domain !== "air") return null;
         if (!objective.polygon || objective.polygon.length < 3) return null;
@@ -149,9 +178,14 @@ export class FleetPlanner {
   generateCoas(asset: Asset, objective: Objective, scenario: FleetScenario): CourseOfAction[] {
     const profile = kindProfile(asset.kind);
     const map = this.getCostMap(profile, scenario);
+    const excluded = this.objectiveInExclusion(objective);
     const coas = COA_VARIANTS.map((variant) => {
       this.coaSeq += 1;
       const id = `coa-${this.coaSeq}`;
+      if (excluded) return infeasible(id, variant, asset, objective, "Target lies inside an exclusion zone");
+      if (objective.type === "engage" && !profile.weapon) {
+        return infeasible(id, variant, asset, objective, "Engage needs a weapon system");
+      }
       const planned = this.planObjective(map, asset.position, objective, VARIANT_WEIGHTS[variant]);
       if (!planned) {
         const reason =
@@ -191,6 +225,17 @@ export class FleetPlanner {
       pick.recommended = true;
     }
     return coas;
+  }
+
+  /** Exclusion zones bind every kind, so a goal inside one can never be reached. */
+  objectiveInExclusion(objective: Objective): boolean {
+    const points: LatLng[] =
+      objective.type === "patrol"
+        ? objective.waypoints ?? []
+        : objective.target
+          ? [objective.target]
+          : [];
+    return points.some((point) => zonesAt(this.grid, point).includes("exclusion"));
   }
 
   /** True when a point is somewhere the kind can occupy (after snapping). */

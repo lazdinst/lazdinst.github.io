@@ -34,6 +34,12 @@ export const FLEET_FAULT_CATALOG: FleetFaultDefinition[] = [
     abortsMission: false,
   },
   {
+    id: "armor_breach",
+    name: "Armor breach",
+    description: "Hostile fire breached the hull. Mobility kill: the asset holds position until recovered.",
+    abortsMission: true,
+  },
+  {
     id: "battery_cell",
     name: "Battery cell fault",
     description: "Usable capacity drops and energy drains three times faster.",

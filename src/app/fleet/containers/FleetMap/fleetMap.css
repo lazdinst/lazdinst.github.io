@@ -5,7 +5,8 @@
   font-family: var(--font-sans);
   outline: none;
 }
-.fl-map.fl-pick {
+.fl-map.fl-pick,
+.fl-map.fl-draw {
   cursor: crosshair;
 }
 .fl-map .leaflet-control-attribution {
@@ -62,6 +63,17 @@
   border-radius: 999px;
   border: 1.5px solid var(--ring);
 }
+.fl-marker .fl-fav {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  fill: var(--warning);
+  stroke: var(--background);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
 .fl-marker.fl-live::after {
   content: "";
   position: absolute;
@@ -75,10 +87,74 @@
   0% { transform: scale(0.7); opacity: 0.7; }
   100% { transform: scale(1.6); opacity: 0; }
 }
+/* Lost link: the body stays neutral (red would read as hostile); a red ring
+   pulses around the marker to flag the dropped link. */
+.fl-marker.fl-lost::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 1.5px solid var(--destructive);
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--destructive) 35%, transparent);
+  animation: fl-lost-pulse 1.1s ease-in-out infinite;
+}
+@keyframes fl-lost-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.25; }
+}
 @media (prefers-reduced-motion: reduce) {
   .fl-marker.fl-live::after { animation: none; }
+  .fl-marker.fl-lost::after { animation: none; opacity: 0.9; }
   .fl-marker-rot { transition: none; }
 }
+
+/* Hostiles */
+.fl-hostile-wrap { background: none; border: 0; }
+.fl-hostile {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--destructive);
+}
+.fl-hostile svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  stroke: var(--background);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.fl-hostile.fl-threat-low { opacity: 0.85; }
+.fl-hostile.fl-hstatus-suppressed svg { fill-opacity: 0.55; }
+.fl-hostile.fl-hstatus-eliminated { color: var(--muted-foreground); }
+.fl-hostile.fl-hstatus-eliminated svg { fill: none; stroke: currentColor; stroke-width: 2.2; }
+.fl-hostile.fl-selected::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ring);
+}
+.fl-hostile.fl-hstatus-active::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  opacity: 0.5;
+  animation: fl-ping 2.4s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fl-hostile.fl-hstatus-active::after { animation: none; }
+}
+.fl-engagement-area { stroke: var(--destructive); stroke-width: 1.2; stroke-dasharray: 6 3; fill: var(--destructive); fill-opacity: 0.05; }
+.fl-weapon-range { stroke: var(--destructive); stroke-opacity: 0.6; stroke-width: 1; stroke-dasharray: 2 3; fill: var(--destructive); fill-opacity: 0.04; }
+.fl-hostile-range { stroke: var(--destructive); stroke-opacity: 0.3; stroke-width: 1; stroke-dasharray: 1 3; fill: none; }
+.fl-map .fl-tooltip.fl-hostile-tip { border-color: color-mix(in oklch, var(--destructive) 50%, transparent); }
 
 /* Tooltips and labels */
 .fl-map .fl-tooltip {
@@ -115,6 +191,40 @@
 .fl-zone-hazard { stroke: var(--warning); fill: var(--warning); }
 .fl-zone-shallow_water { stroke: var(--chart-2); fill: var(--chart-2); }
 .fl-zone-low_comms { stroke: var(--chart-4); fill: var(--chart-4); }
+.fl-zone-exclusion { stroke: var(--destructive); fill: var(--destructive); fill-opacity: 0.22; stroke-width: 1.5; stroke-dasharray: 6 3; }
+.fl-zone.fl-zone-selected { stroke-width: 2.5; fill-opacity: 0.28; }
+.fl-zone.fl-zone-editing { stroke: var(--ring); stroke-dasharray: none; stroke-width: 2; }
+.fl-zone.fl-zone-draft { stroke-width: 1.5; stroke-dasharray: 3 3; fill-opacity: 0.14; }
+.fl-zone-draft-edge { fill: none; stroke: var(--foreground); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.fl-draft-vertex { fill: var(--background); stroke: var(--foreground); stroke-width: 1.5; }
+.fl-draft-vertex-first { stroke: var(--ring); stroke-width: 2; cursor: pointer; }
+.fl-vertex {
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--background);
+  border: 1.5px solid var(--ring);
+  cursor: grab;
+}
+.fl-vertex:active { cursor: grabbing; }
+.fl-vertex.fl-vertex-center {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--ring);
+  border: 2px solid var(--background);
+  box-shadow: 0 0 0 1px var(--ring);
+  cursor: move;
+}
+.fl-vertex.fl-vertex-mid {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border-color: var(--muted-foreground);
+  opacity: 0.8;
+  cursor: copy;
+}
 .fl-terrain { stroke: none; }
 .fl-terrain-wetland { fill: var(--chart-2); fill-opacity: 0.12; }
 .fl-terrain-urban { fill: var(--ds-gray-700); fill-opacity: 0.14; }

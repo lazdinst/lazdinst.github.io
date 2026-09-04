@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { HotkeysProvider } from "@tanstack/react-hotkeys";
 import { fleetRuntime } from "@/fleet";
 import { PlannerDraftProvider } from "../context/PlannerDraftContext";
 
@@ -26,5 +27,9 @@ export function FleetProvider({ children }: FleetProviderProps) {
     return () => cancelAnimationFrame(frameId);
   }, []);
 
-  return <PlannerDraftProvider>{children}</PlannerDraftProvider>;
+  return (
+    <HotkeysProvider defaultOptions={{ hotkey: { preventDefault: true, ignoreInputs: true } }}>
+      <PlannerDraftProvider>{children}</PlannerDraftProvider>
+    </HotkeysProvider>
+  );
 }

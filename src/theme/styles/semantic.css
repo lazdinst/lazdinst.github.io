@@ -32,9 +32,11 @@
   --brand-foreground: var(--ds-background-100);
 
   --ring: var(--brand);
-  --success: var(--ds-green-800);
-  --warning: var(--ds-amber-800);
-  --destructive: var(--ds-red-800);
+  /* Status tones sit one step brighter than the 800 text scale so meters,
+     badges, and map markers read at a glance. */
+  --success: var(--ds-green-700);
+  --warning: var(--ds-amber-700);
+  --destructive: var(--ds-red-700);
   --info: var(--ds-blue-800);
 
   --card: var(--ds-background-100);

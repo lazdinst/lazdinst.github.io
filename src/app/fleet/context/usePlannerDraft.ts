@@ -10,6 +10,8 @@ export interface PlannerDraft {
   /** Waypoint ids for patrol loops, in order. */
   patrolWaypointIds: string[];
   surveyAreaId: string | null;
+  /** Engage: hostile ids to target; empty means every active hostile. */
+  engageHostileIds: string[];
   swathM: number;
   /** True while the next map click sets the transit target. */
   pickMode: boolean;
