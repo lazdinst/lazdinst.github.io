@@ -68,7 +68,7 @@ export function FleetMap() {
   const drawing = zoneEditor.mode === "draw";
   const editing = zoneEditor.mode === "edit";
   const { favorites } = useDevicePrefs();
-  const { follow, setFollow, focusRequest, openContextMenu, selectHostile, selectedHostileId } = useShellUi();
+  const { follow, setFollow, focusRequest, openContextMenu, selectHostile, selectedHostileId, drawerPanel, closeDrawer } = useShellUi();
   const mapRef = useRef<LeafletMap | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [layers, setLayers] = useState<MapLayers>({
@@ -175,6 +175,11 @@ export function FleetMap() {
           </>
         ) : null}
         <AssetMarkers
+          // A device tapped on the map should show its card; the operations
+          // drawer would otherwise hide it. The planner stays, it uses the selection.
+          onSelect={() => {
+            if (drawerPanel === "operations") closeDrawer();
+          }}
           assets={snapshot.assets}
           selectedId={snapshot.selectedAssetId}
           labels={layers.labels}

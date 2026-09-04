@@ -525,7 +525,18 @@ export class FleetRuntime {
 
   /** True when the current zone set differs from the shipped defaults. */
   zonesModified(): boolean {
-    return this.area.zones !== this.defaultZones;
+    if (this.area.zones === this.defaultZones) return false;
+    if (this.area.zones.length !== this.defaultZones.length) return true;
+    return this.area.zones.some((zone, index) => {
+      const base = this.defaultZones[index];
+      return (
+        zone.id !== base.id ||
+        zone.name !== base.name ||
+        zone.type !== base.type ||
+        zone.polygon.length !== base.polygon.length ||
+        zone.polygon.some((point, i) => point.lat !== base.polygon[i].lat || point.lng !== base.polygon[i].lng)
+      );
+    });
   }
 
   addZone(input: Partial<ZoneInput> & Pick<ZoneInput, "type" | "polygon">): Zone | null {

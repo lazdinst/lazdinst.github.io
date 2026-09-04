@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, type ReactNode } from "react";
-import type { Marker as LeafletMarker } from "leaflet";
+import { divIcon, type DivIcon, type Marker as LeafletMarker } from "leaflet";
 import {
   Circle,
   CircleMarker,
@@ -81,20 +81,49 @@ export const CoverageLayer = memo(function CoverageLayer({ area, scenario }: { a
   );
 });
 
+const DEPOT_GLYPH = {
+  // Lucide "house" and "anchor" outlines.
+  house:
+    '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  anchor: '<path d="M12 22V8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><circle cx="12" cy="5" r="3"/>',
+} as const;
+
+const depotIconCache = new Map<string, DivIcon>();
+
+/** Home-base badge: a rounded square with a house (land) or anchor (sea) outline. */
+function depotIcon(glyph: keyof typeof DEPOT_GLYPH): DivIcon {
+  let icon = depotIconCache.get(glyph);
+  if (!icon) {
+    // A pin: the badge floats above the coordinate so devices parked at the
+    // depot do not hide it, and a stem points at the exact spot.
+    icon = divIcon({
+      className: "fl-depot-wrap",
+      iconSize: [24, 32],
+      iconAnchor: [12, 32],
+      tooltipAnchor: [12, -26],
+      html: `<div class="fl-depot-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${DEPOT_GLYPH[glyph]}</svg></div>`,
+    });
+    depotIconCache.set(glyph, icon);
+  }
+  return icon;
+}
+
 export const SitesLayer = memo(function SitesLayer({ area, labels }: { area: OperatingArea; labels: boolean }) {
   return (
     <>
       {area.depots.map((depot) => (
-        <CircleMarker
+        <Marker
           key={depot.id}
-          center={toTuple(depot.position)}
-          radius={5}
-          className={"fl-depot"}
+          position={toTuple(depot.position)}
+          icon={depotIcon(depot.domains.every((domain) => domain === "sea") ? "anchor" : "house")}
+          zIndexOffset={-100}
+          keyboard={false}
+          alt={depot.name}
         >
-          <Tooltip key={labels ? "p" : "h"} permanent direction="right" offset={[6, 0]} className="fl-tooltip fl-label" opacity={1}>
+          <Tooltip key={labels ? "p" : "h"} permanent direction="right" offset={[2, 0]} className="fl-tooltip fl-label fl-depot-label" opacity={1}>
             {depot.name.toUpperCase()}
           </Tooltip>
-        </CircleMarker>
+        </Marker>
       ))}
       {area.waypoints.map((waypoint) => (
         <CircleMarker
@@ -246,12 +275,15 @@ export function AssetMarkers({
   labels,
   favorites,
   onContextMenu,
+  onSelect,
 }: {
   assets: Asset[];
   selectedId: string | null;
   labels: boolean;
   favorites: string[];
   onContextMenu: (asset: Asset, clientX: number, clientY: number) => void;
+  /** Runs after a marker click selects the asset. */
+  onSelect?: (asset: Asset) => void;
 }) {
   return (
     <>
@@ -263,6 +295,7 @@ export function AssetMarkers({
           labels={labels}
           favorite={favorites.includes(asset.id)}
           onContextMenu={onContextMenu}
+          onSelect={onSelect}
         />
       ))}
     </>
@@ -275,12 +308,15 @@ function AssetMarker({
   labels,
   favorite,
   onContextMenu,
+  onSelect,
 }: {
   asset: Asset;
   selected: boolean;
   labels: boolean;
   favorite: boolean;
   onContextMenu: (asset: Asset, clientX: number, clientY: number) => void;
+  /** Runs after a marker click selects the asset. */
+  onSelect?: (asset: Asset) => void;
 }) {
   const ref = useRef<LeafletMarker | null>(null);
   const lostLink = asset.status === "lost_link";
@@ -312,7 +348,10 @@ function AssetMarker({
       alt={asset.callsign}
       bubblingMouseEvents={false}
       eventHandlers={{
-        click: () => fleetRuntime.selectAsset(asset.id),
+        click: () => {
+          fleetRuntime.selectAsset(asset.id);
+          onSelect?.(asset);
+        },
         contextmenu: (event) => {
           event.originalEvent.preventDefault();
           onContextMenu(asset, event.originalEvent.clientX, event.originalEvent.clientY);
