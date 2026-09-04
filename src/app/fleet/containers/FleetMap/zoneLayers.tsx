@@ -64,17 +64,13 @@ function ZonePolygon({
   }, [zone.polygon, editing]);
   const polygon = preview ?? zone.polygon;
 
-  const pathOptions = useMemo(
-    () => ({
-      className: cn(
-        "fl-zone",
-        `fl-zone-${zone.type}`,
-        selected && "fl-zone-selected",
-        editing && "fl-zone-editing"
-      ),
-      interactive,
-    }),
-    [zone.type, selected, editing, interactive]
+  // Leaflet reads className only when the path is created, so the polygon
+  // below is keyed on it and remounts when it changes.
+  const className = cn(
+    "fl-zone",
+    `fl-zone-${zone.type}`,
+    selected && "fl-zone-selected",
+    editing && "fl-zone-editing"
   );
   const handlers = useMemo(
     () => ({
@@ -98,9 +94,10 @@ function ZonePolygon({
     <>
       <Polygon
         // Leaflet keeps its own copy of the ring; remount when the source changes.
-        key={`${zone.id}:${polygon.length}:${editing ? "e" : "s"}`}
+        key={`${zone.id}:${polygon.length}:${className}`}
         positions={toTuples(polygon)}
-        pathOptions={pathOptions}
+        className={className}
+        interactive={interactive}
         eventHandlers={handlers}
         bubblingMouseEvents={false}
       >
@@ -241,14 +238,14 @@ export function ZoneDraftLayer({ points, type, onCloseRing }: ZoneDraftLayerProp
     <>
       {points.length >= 3 ? (
         <Polygon
-          key={`draft-${points.length}`}
+          key={`draft-${points.length}-${type}`}
           positions={toTuples(points)}
-          pathOptions={{ className: cn("fl-zone fl-zone-draft", `fl-zone-${type}`), interactive: false }}
+          className={cn("fl-zone fl-zone-draft", `fl-zone-${type}`)} interactive={false}
         />
       ) : points.length === 2 ? (
         <Polyline
           positions={toTuples(points)}
-          pathOptions={{ className: "fl-zone-draft-edge", interactive: false }}
+          className={"fl-zone-draft-edge"} interactive={false}
         />
       ) : null}
       {points.map((point, index) => (
@@ -256,7 +253,7 @@ export function ZoneDraftLayer({ points, type, onCloseRing }: ZoneDraftLayerProp
           key={`d-${index}`}
           center={toTuple(point)}
           radius={index === 0 ? 5 : 3}
-          pathOptions={{ className: cn("fl-draft-vertex", index === 0 && "fl-draft-vertex-first") }}
+          className={cn("fl-draft-vertex", index === 0 && "fl-draft-vertex-first")}
           eventHandlers={
             index === 0 && points.length >= 3
               ? {

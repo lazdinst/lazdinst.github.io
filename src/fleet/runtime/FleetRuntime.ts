@@ -153,6 +153,8 @@ export class FleetRuntime {
   private area: OperatingArea;
   private readonly defaultZones: Zone[];
   private readonly clock: SimulationClock;
+  /** Wall-clock ms at sim time zero, so timestamps can render as a clock. */
+  private epochMs = Date.now();
   private readonly history: RingBuffer<FleetSnapshot>;
   private readonly eventLog: EventLog;
   private readonly planner: FleetPlanner;
@@ -229,6 +231,7 @@ export class FleetRuntime {
   reset(): void {
     const wasRunning = this.clock.isRunning();
     this.clock.reset();
+    this.epochMs = Date.now();
     this.accumulatorMs = 0;
     this.stepCount = 0;
     this.eventSeq = 0;
@@ -1520,6 +1523,7 @@ export class FleetRuntime {
         this.playbackMode === "scrub" && this.scrubTimestampMs !== null
           ? this.scrubTimestampMs
           : this.clock.getSimTimeMs(),
+      epochMs: this.epochMs,
       timeScale: this.clock.getTimeScale(),
       playbackMode: this.playbackMode,
       scrubTimestampMs: this.scrubTimestampMs,

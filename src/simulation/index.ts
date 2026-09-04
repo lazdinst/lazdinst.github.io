@@ -37,7 +37,7 @@ export type {
 } from "./types/SimulationSubsystem";
 
 export { SimulationClock } from "./clock/SimulationClock";
-export { formatSimTimeSeconds } from "./clock/formatSimTime";
+export { formatSimClock, formatSimTimeSeconds } from "./clock/formatSimTime";
 export { SeededRng, mixSeed } from "./rng/SeededRng";
 export {
   sineWave,

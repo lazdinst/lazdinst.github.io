@@ -234,7 +234,7 @@ export const PROFILE: Profile = {
     },
     {
       id: "fleet",
-      title: "Fleet Ops",
+      title: "SkyNet",
       summary:
         "Autonomous fleet console on a Leaflet map: 18 simulated drones, rovers, legged robots, and surface vessels with derived sensor suites, relay link budgets, and maintenance state. A course-of-action planner runs A* over a per-kind cost grid and scores direct, safe, and efficient routes before dispatch.",
       stack: ["React", "Leaflet", "TypeScript", "A* planning", "Tailwind CSS", "Vitest"],
