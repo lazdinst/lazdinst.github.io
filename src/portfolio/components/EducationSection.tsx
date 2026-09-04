@@ -19,7 +19,19 @@ export function EducationSection({ education }: EducationSectionProps) {
             key={`${entry.school}-${entry.start}`}
             className="flex items-start gap-3 rounded-md border border-border bg-sidebar p-3"
           >
-            <GraduationCap className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+            {entry.logo ? (
+              <img
+                src={entry.logo}
+                alt=""
+                width={32}
+                height={32}
+                className="size-8 shrink-0 rounded-md border border-border bg-background object-contain p-0.5"
+              />
+            ) : (
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted">
+                <GraduationCap className="size-3.5 text-muted-foreground" />
+              </span>
+            )}
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-2">
                 <h3 className="text-sm font-medium text-foreground">

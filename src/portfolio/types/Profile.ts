@@ -61,6 +61,8 @@ export interface ProjectEntry {
 export interface EducationEntry {
   school: string;
   degree: string;
+  /** Public path to a small square logo shown before the entry. */
+  logo?: string;
   start: string;
   end: string;
   detail?: string;
