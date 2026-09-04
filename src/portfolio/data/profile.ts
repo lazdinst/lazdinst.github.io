@@ -253,6 +253,7 @@ export const PROFILE: Profile = {
     {
       school: "Grand Valley State University · Grand Rapids, MI",
       degree: "B.S. Electrical Engineering",
+      logo: "/logos/gvsu.png",
       start: "",
       end: "",
       detail: "IEEE Student Branch · Applied Global Innovation Initiative (AGII)",
@@ -260,6 +261,7 @@ export const PROFILE: Profile = {
     {
       school: "Hack Reactor · San Francisco, CA",
       degree: "Software Engineering Immersive",
+      logo: "/logos/hackreactor.png",
       start: "Jun 2017",
       end: "Sep 2017",
       detail:
